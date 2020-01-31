@@ -1,0 +1,18 @@
+OpenLab Instructions
+=====================
+VPN into UCI-Full using Cisco AnyConnect VPN Client
+
+install dependencies:
+
+# pip3 install --user packages/spacetime-2.1.1-py3-none-any.whl
+# pip3 install --user -r packages/requirements.txt
+# pip3 install --user lxml
+
+
+Now, configure your config.ini
+
+launch it: python3 launch.py
+
+It should try to run, but return: ConnectionRefusedError: [Errno 111] Connection refused
+
+This just means that the server is still down.

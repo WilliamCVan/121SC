@@ -16,3 +16,9 @@ launch it: python3 launch.py
 It should try to run, but return: ConnectionRefusedError: [Errno 111] Connection refused
 
 This just means that the server is still down.
+
+
+pip3 install --user beautifulsoup4
+
+### Foreach run, DELETE the frontier.shelve file in openlab solution directory
+to have it run LATEST copy of code ###

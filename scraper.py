@@ -12,16 +12,19 @@ def extract_next_links(url, resp):
     listLinks = list()
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
 
+    strCompleteURL = url  # REGEX function HERE to sanitize url
+
+    # increment counter for Domain based on subdomain
+    tutils.incrementSubDomain(url)
+
+    # add all tokens found from html response with tags removed
+    tutils.tokenize(soup.get_text())
+
+
     for link in soup.find_all('a'):
-        strCompleteURL = link.get('href') #REGEX HERE to sanitize url and/or urljoin path to hostname
+        strCompleteURL = link.get('href') #REGEX function HERE to sanitize url and/or urljoin path to hostname
 
         listLinks.append(strCompleteURL)
-
-        #increment counter for Domain based on subdomain
-        tutils.incrementSubDomain(strCompleteURL)
-
-        #add all tokens found from html response with tags removed
-        tutils.tokenize(soup.get_text())
 
     return listLinks    #returns the urls to the Frontier object
 

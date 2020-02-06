@@ -1,13 +1,34 @@
 import re
 from urllib.parse import urlparse
+from urllib.robotparser import RobotFileParser as RobotFileParser
+from bs4 import BeautifulSoup
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
-    return [link for link in links if is_valid(link)]
+    return [link for link in links if is_valid(link)]   #automatically adds to frontier
 
 def extract_next_links(url, resp):
-    # Implementation requred.
-    return list()
+    parsed_uri = urlparse('http://stackoverflow.com/questions/1234567/blah-blah-blah-blah')
+    result = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+
+    robot = RobotFileParser(result + "robots.txt")
+    robot.read()
+    boolCanFetch = robot.can_fetch("*", robot.url)
+
+    listLinks = list()
+
+    soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
+    print("complete")
+
+    for link in soup.find_all('a'):
+        listLinks.append(link.get('href'))
+
+    if len(listLinks) > 0:
+        print(listLinks)
+
+    listLinks.append("https://www.ics.uci.edu/about/visit/index.php")
+
+    return listLinks
 
 def is_valid(url):
     try:

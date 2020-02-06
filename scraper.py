@@ -1,39 +1,36 @@
 import re
 from urllib.parse import urlparse
-from urllib.robotparser import RobotFileParser as RobotFileParser
 from bs4 import BeautifulSoup
+import crawler.datastore as data
+import utils.team_utils as tutils
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]   #automatically adds to frontier
 
 def extract_next_links(url, resp):
-    parsed_uri = urlparse('http://stackoverflow.com/questions/1234567/blah-blah-blah-blah')
-    result = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
-
-    robot = RobotFileParser(result + "robots.txt")
-    robot.read()
-    boolCanFetch = robot.can_fetch("*", robot.url)
-
     listLinks = list()
-
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
-    print("complete")
 
     for link in soup.find_all('a'):
-        listLinks.append(link.get('href'))
+        strCompleteURL = link.get('href') #REGEX HERE to sanitize url and/or urljoin path to hostname
 
-    if len(listLinks) > 0:
-        print(listLinks)
+        listLinks.append(strCompleteURL)
 
-    listLinks.append("https://www.ics.uci.edu/about/visit/index.php")
+        #increment counter for Domain based on subdomain
+        tutils.incrementSubDomain(strCompleteURL)
 
-    return listLinks
+        #add all tokens found from html response with tags removed
+        tutils.tokenize(soup.get_text())
+
+    return listLinks    #returns the urls to the Frontier object
 
 def is_valid(url):
     try:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
+            return False
+        if url in data.DataStore.blackList:
             return False
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"

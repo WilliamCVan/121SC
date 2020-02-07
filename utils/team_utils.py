@@ -14,6 +14,7 @@ def robotsTxtParse():
 
 def incrementSubDomain(strDomain):
     parsed_uri = urlparse(strDomain)
+    # MAYBE remove the uri.scheme, since it doesn't matter the protocol #
     result = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
 
     data.DataStore.subDomainCount[result] += 1

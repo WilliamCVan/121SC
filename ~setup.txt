@@ -30,8 +30,10 @@ Anaconda => Environments => crawlIS => Right-click => Open in Terminal
 install dependencies:
 # pip install --user packages/spacetime-2.1.1-py3-none-any.whl
 # pip install --user -r packages/requirements.txt
-# pip install --user lxml
-# pip install --user beautifulsoup4
+
+INSTALL packages in Anaconda Navigator Environment:
+-lxml
+-beautifulsoup4
 
 launch it: python launch.py
 

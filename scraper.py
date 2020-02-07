@@ -1,7 +1,9 @@
 import re
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
-import crawler.datastore as data
+import lxml
+#import crawler.datastore as data
+from crawler.datastore import DataStore
 import utils.team_utils as tutils
 
 def scraper(url, resp):
@@ -22,6 +24,7 @@ def extract_next_links(url, resp):
 
 
     for link in soup.find_all('a'):
+        # get absolute urls here before adding to listLInks()
         strCompleteURL = link.get('href') #REGEX function HERE to sanitize url and/or urljoin path to hostname
 
         listLinks.append(strCompleteURL)
@@ -33,7 +36,7 @@ def is_valid(url):
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
-        if url in data.DataStore.blackList:
+        if url in DataStore.blackList:
             return False
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"

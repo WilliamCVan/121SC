@@ -1,6 +1,6 @@
 import re
 from urllib.parse import urlparse
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup , Comment
 import crawler.datastore as data
 import utils.team_utils as tutils
 
@@ -11,7 +11,8 @@ def scraper(url, resp):
 def extract_next_links(url, resp):
     listLinks = list()
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
-
+    for tag in soup(text=lambda text: isinstance(text,Comment)):
+        tag.extract()
     strCompleteURL = url  # REGEX function HERE to sanitize url
 
     # increment counter for Domain based on subdomain

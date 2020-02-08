@@ -90,6 +90,14 @@ def incrementSubDomain(strDomain):
         elif strDomain not in DataStore.icsSubDomains.keys():
             DataStore.icsSubDomains[result]
 
+def printIcsSubDomains():
+    #Prints out the subdomains in alphabetical order, along with the amount of unique pages
+    sortedDomains = [(subDomain, pageCount) for subDomain, pageCount in DataStore.icsSubDomains]
+    sortedDomains.sort(key = lambda x: x[0])
+    for subDomain, pageCount in sortedDomains:
+        print(f"{subDomain} -> {pageCount}")
+
+
 def tokenize(url, rawText):
     listTemp = re.split(r'[^a-z0-9]+', rawText.lower())
 

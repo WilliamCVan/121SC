@@ -21,6 +21,7 @@ def extract_next_links(url, resp):
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
 
     tutils.robotTxtParse(url)
+    tutils.robotsTxtParseSeeds()
 
     for tag in soup(text=lambda text: isinstance(text,Comment)):
         tag.extract()

@@ -52,13 +52,6 @@ def tokenize(url, rawText):
     if (len(listTemp) == 0):
         DataStore.blackList.add(url)
 
-#if the url has been seen before or is in the frontier now
-def isDuplicateUrl(str):
-    if str in DataStore.frontier:
-        return True
-    if str in DataStore.urlSeenBefore:
-        return True
-    return False
 
 #if url has been blacklisted before
 def isBlackListed(str):
@@ -76,24 +69,16 @@ def findUrl(str):
     except:
         return ""
 
-#is url valid
-def isValid(str):
-    url = findUrl(str)
-    if isBlackListed(str):
-        return False
-    if isDuplicateUrl(str):
-        return False
-    return True
 
 def removeQuery(str):
     str = str.split('?')[0]
     return str
 
 
-def hashUrl(url)->None:
-    # 2/6/2020 Function takes in a url and finds the hash for it. Adds the hash and url into a dic
-    normalizedUrl = normalize(url)
-    data.DataStore.hashTable[get_urlhash(normalizedUrl)] = url
+# def hashUrl(url)->None:
+#     # 2/6/2020 Function takes in a url and finds the hash for it. Adds the hash and url into a dic
+#     normalizedUrl = normalize(url)
+#     DataStore.hashTable[get_urlhash(normalizedUrl)] = url
 
 #does the url contain duplicate paths
 def multipleDir(str):
@@ -107,13 +92,37 @@ def multipleDir(str):
         else:
             dict[i] = 1
     return False
-#is url valid
+
+def ifConsideredSpam(str):
+    try:
+        str = str.split('?')[1]
+        str = str.split('=')[0]
+        if "replytocom" in str:
+            return True
+    except:
+        return False
+    return False
+
+def ifInUCIDomain(str):
+    try:
+        str = str.split('?')[0]
+        if 'uci.edu'in str:
+            return True
+        return False
+    except:
+        return False
+
 def isValid(str):
     url = findUrl(str)
+
     if isBlackListed(str):
         return False
-    if isDuplicateUrl(str):
+    if str in DataStore.urlSeenBefore:
         return False
     if multipleDir(str):
+        return False
+    if ifConsideredSpam(str):
+        return False
+    if ifInUCIDomain(str) == False:
         return False
     return True

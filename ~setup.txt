@@ -37,3 +37,15 @@ INSTALL packages in Anaconda Navigator Environment:
 
 launch it: python launch.py
 
+
+# sudo apt install redis-server
+# sudo systemctl enable redis-server.service
+
+Before (file /etc/redis/redis.conf)
+bind 127.0.0.1
+After
+bind 0.0.0.0
+
+# sudo service redis-server restart
+# sudo ufw disable
+

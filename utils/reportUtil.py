@@ -1,3 +1,5 @@
+import redis
+
 stopWords = {"a","about","above","after","again","against","all","am","an","and","any","are","aren't",
 "as","at","be","because","been","before","being","below","between","both","but","by","can't",
 "cannot","could","couldn't","did","didn't","do","does","doesn't","doing","don't","down","during",
@@ -10,3 +12,12 @@ stopWords = {"a","about","above","after","again","against","all","am","an","and"
 "this","those","through","to","too","under","until","up","very","was","wasn't","we","we'd","we'll","we're","we've","were","weren't",
 "what","what's","when","when's","where","where's","which","while","who","who's","whom","why","why's","with", "won't","would","wouldn't",
 "you","you'd","you'll","you're","you've","your","yours","yourself","yourselves"}
+
+def insertRedisKey():
+    r = redis.Redis(host='192.168.111.128', port=6379)
+
+    r.set('foo', 'bar')
+    value = r.get('foo')
+    print(value)
+
+insertRedisKey()

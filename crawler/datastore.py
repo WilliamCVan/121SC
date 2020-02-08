@@ -1,3 +1,4 @@
+from collections import defaultdict
 
 class DataStore:
     #team_utils could not pickup self.robotsCheck property without below declaration
@@ -7,6 +8,9 @@ class DataStore:
     urlSeenBefore = set() #unique urls for report, len(urlSeenBefore) = #
     blackList = set()
     mostTokensUrl = ("", 0) #[url, count]
+    uniqueUrlCount = 0
+    icsUrlCount = 0
+    icsSubDomains = defaultdict(int)
 
     def __init__(self):
         self.robotsCheck = dict()

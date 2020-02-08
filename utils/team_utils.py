@@ -84,6 +84,12 @@ def incrementSubDomain(strDomain):
 
     DataStore.subDomainCount[result] = DataStore.subDomainCount.get(result, 0) + 1
 
+    if "ics.uci.edu" in result:
+        if strDomain not in DataStore.urlSeenBefore:
+            DataStore.icsSubDomains[result] += 1
+        elif strDomain not in DataStore.icsSubDomains.keys():
+            DataStore.icsSubDomains[result]
+
 def tokenize(url, rawText):
     listTemp = re.split(r'[^a-z0-9]+', rawText.lower())
 

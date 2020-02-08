@@ -15,18 +15,24 @@ def extract_next_links(url, resp):
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
     for tag in soup(text=lambda text: isinstance(text,Comment)):
         tag.extract()
-    strCompleteURL = url  # REGEX function HERE to sanitize url
+
+    # REGEX function HERE to sanitize url
+    # removes any fragments
+    strCompleteURL = tutils.findUrl(url)
 
     # increment counter for Domain based on subdomain
     tutils.incrementSubDomain(url)
 
     # add all tokens found from html response with tags removed
-    tutils.tokenize(soup.get_text())
-
+    varTemp = soup.get_text()
+    tutils.tokenize(url, varTemp)
 
     for link in soup.find_all('a'):
         # get absolute urls here before adding to listLInks()
-        strCompleteURL = link.get('href') #REGEX function HERE to sanitize url and/or urljoin path to hostname
+        childURL = link.get('href')
+
+        # REGEX function HERE to sanitize url and/or urljoin path to hostname
+        strCompleteURL = tutils.returnFullURL(childURL)
 
         listLinks.append(strCompleteURL)
 

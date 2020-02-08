@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 from urllib.robotparser import RobotFileParser as RobotFileParser
 import re
 from urllib.parse import urljoin
+from utils import normalize, get_urlhash
 
 def robotsTxtParse():
     parsed_uri = urlparse('https://www.ics.uci.edu')
@@ -16,15 +17,17 @@ def robotsTxtParse():
 
 
 def returnFullURL(parent_url, strInput):
-    result = '{uri.scheme}://{uri.netloc}/'.format(uri=parent_url)
+    parsed_uri = urlparse(parent_url)
+    result = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+
     if (strInput.strip() == "/"):
         return ""
     if (strInput.strip() == "#"):
         return ""
-    if ("#" in strInput.strip() and findUrl(strInput) == False):
+    if ("#" in strInput.strip() and findUrl(strInput) == ""):
         return ""
     else:
-        return urljoin(parent_url, strInput)
+        return urljoin(result, strInput)
 
 
 
@@ -61,11 +64,13 @@ def isBlackListed(str):
 
 #extract url
 def findUrl(str):
-    # removes all the fragments from url and return url string
-    url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', str)
-    if ',' in url[0]:
-        url= url[0].split(',')
-    return url
+    try:
+        url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', str)
+        if ',' in url[0]:
+            url= url[0].split(',')
+        return url
+    except:
+        return ""
 
 #is url valid
 def isValid(str):
@@ -76,6 +81,35 @@ def isValid(str):
         return False
     return True
 
-def removeQueue(str):
+def removeQuery(str):
     str = str.split('?')[0]
     return str
+
+
+def hashUrl(url)->None:
+    # 2/6/2020 Function takes in a url and finds the hash for it. Adds the hash and url into a dic
+    normalizedUrl = normalize(url)
+    data.DataStore.hashTable[get_urlhash(normalizedUrl)] = url
+
+#does the url contain duplicate paths
+def multipleDir(str):
+    dict={}
+    url = str.split('/')
+    for i in url:
+        if i in dict:
+            dict[i] +=1
+            DataStore.blackList.add(str)
+            return True
+        else:
+            dict[i] = 1
+    return False
+#is url valid
+def isValid(str):
+    url = findUrl(str)
+    if isBlackListed(str):
+        return False
+    if isDuplicateUrl(str):
+        return False
+    if multipleDir(str):
+        return False
+    return True

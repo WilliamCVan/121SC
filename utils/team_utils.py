@@ -1,7 +1,7 @@
 import crawler.datastore as data
 from crawler.datastore import DataStore
 from urllib.parse import urlparse
-from urllib.robotparser import RobotFileParser as RobotFileParser
+from urllib.robotparser import RobotFileParser
 import re
 from urllib.parse import urljoin
 from utils import normalize, get_urlhash
@@ -18,7 +18,7 @@ def robotsTxtParse():
 
 def returnFullURL(parent_url, strInput):
     parsed_uri = urlparse(parent_url)
-    result = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+    result = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)   #remove slash
 
     if (strInput.strip() == "/"):
         return ""
@@ -34,12 +34,16 @@ def returnFullURL(parent_url, strInput):
 def incrementSubDomain(strDomain):
     parsed_uri = urlparse(strDomain)
     # MAYBE remove the uri.scheme, since it doesn't matter the protocol #
-    result = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+    result = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)   #remove slash at end
 
     DataStore.subDomainCount[result] = DataStore.subDomainCount.get(result, 0) + 1
 
 def tokenize(url, rawText):
     listTemp = re.split(r'[^a-z0-9]+', rawText.lower())
+
+    if(DataStore.mostTokensUrl[1] < len(listTemp)):
+        DataStore.mostTokensUrl[0] = url
+        DataStore.mostTokensUrl[1] = len(listTemp)
 
     for word in listTemp:
         if (len(word) > 0):

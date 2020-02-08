@@ -8,6 +8,9 @@ class DataStore:
     frontier = set()
     blackList = set()
 
+    uniqueUrlCount = 0
+    mostTokensUrl = ("", 0) #[url, count]
+
     def __init__(self):
         self.robotsCheck = dict()
         self.subDomainCount = dict()

@@ -18,8 +18,6 @@ def extract_next_links(url, resp):
     if (resp.status > 599): # in case we got out of seed domains
         return  #maybe add to blacklist instead of returning
 
-    DataStore.uniqueUrlCount += 1
-
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
 
     for tag in soup(text=lambda text: isinstance(text,Comment)):

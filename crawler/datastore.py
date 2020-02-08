@@ -3,12 +3,9 @@ class DataStore:
     #team_utils could not pickup self.robotsCheck property without below declaration
     robotsCheck = dict()
     subDomainCount = dict()
-    tokensCount = dict()
-    urlSeenBefore = set()
-    frontier = set()
+    tokensCount = dict()   #all tokens stored in dict with counts
+    urlSeenBefore = set() #unique urls for report, len(urlSeenBefore) = #
     blackList = set()
-
-    uniqueUrlCount = 0
     mostTokensUrl = ("", 0) #[url, count]
 
     def __init__(self):

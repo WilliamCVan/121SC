@@ -1,10 +1,10 @@
 import re
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup , Comment
-import lxml
 #import crawler.datastore as data
 from crawler.datastore import DataStore
 import utils.team_utils as tutils
+from urllib.robotparser import RobotFileParser
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -20,12 +20,18 @@ def extract_next_links(url, resp):
 
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
 
+    tutils.robotTxtParse(url)
+
     for tag in soup(text=lambda text: isinstance(text,Comment)):
         tag.extract()
 
     # REGEX function HERE to sanitize url
     # removes any fragments
     strCompleteURL = tutils.findUrl(url)[0]
+
+    DataStore.urlSeenBefore.add(strCompleteURL)
+    if strCompleteURL not in DataStore.urlSeenBefore:
+        DataStore.uniqueUrlCount += 1
 
     # increment counter for Domain based on subdomain
     tutils.incrementSubDomain(strCompleteURL)

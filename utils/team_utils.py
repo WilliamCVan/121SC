@@ -6,15 +6,61 @@ import re
 from urllib.parse import urljoin
 from utils import normalize, get_urlhash
 
-def robotsTxtParse():
-    parsed_uri = urlparse('https://www.ics.uci.edu')
-    result = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+import tldextract
 
-    robot = RobotFileParser(result + "robots.txt")
+def robotsTxtParse(url):
+    # Finds the robot.txt of a domain and subdomain(if one exists) and
+    # Stores it in DataStore.RobotChecks
+    # QUESTION: Should we have the check for robotsCheck before inside function or before calling it?
+
+    domain = getDomain(url)
+    robot = RobotFileParser()
+    robot.set_url(domain)
     robot.read()
-    boolCanFetch = robot.can_fetch("*", robot.url)
-    DataStore.robotsCheck[result] = robot
 
+    if domain != '' and domain not in DataStore.robotsCheck:
+        DataStore.robotsCheck[domain] = robot
+
+    subdomain = getSubDomain(url)
+    if subdomain != '' and subdomain not in DataStore.robotsCheck:
+        robot = RobotFileParser()
+        robot.set_url(subdomain)
+        robot.read()
+
+        DataStore.robotsCheck[subdomain] = robot
+
+def robotsTxtParseSeeds():
+    # Stores the robot.txt of the seed urls in DataStore.RobotChecks
+    seedUrls = ['https://www.ics.uci.edu',
+    'https://www.cs.uci.edu',
+    'https://www.informatics.uci.edu',
+    'https://www.stat.uci.edu',
+    'https://today.uci.edu/department/information_computer_sciences/']
+    for seedUrl in seedUrls:
+        domain = getSubDomain(seedUrl)
+        robot = RobotFileParser()
+        robot.set_url(domain)
+        robot.read()
+        DataStore.robotsCheck[domain] = robot
+
+def getDomain(url):
+    # Gets the domain or subdomain of a url and returns it.
+
+    ext = tldextract.extract(url)
+    domainUrl = ext.domain
+    domainUrl = '.'.join(domainUrl, ext.suffix)
+
+    return domainUrl
+
+def getSubDomain(url):
+    ext = tldextract.extract(url)
+    domainUrl = ''
+    if ext.subdomain == '':  # Returns url with subdomain attached.
+        return domainUrl
+    domainUrl = '.'.join(ext[:2])
+    domainUrl = '.'.join(domainUrl, ext.suffix)
+
+    return domainUrl
 
 def returnFullURL(parent_url, strInput):
     parsed_uri = urlparse(parent_url)
@@ -112,6 +158,7 @@ def ifInUCIDomain(str):
     except:
         return False
 
+#is url valid
 def isValid(str):
     url = findUrl(str)
 

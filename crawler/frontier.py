@@ -5,7 +5,7 @@ from threading import Thread, RLock
 from queue import Queue, Empty
 
 from utils import get_logger, get_urlhash, normalize
-from scraper import is_valid
+from utils.team_utils import isValid
 
 class Frontier(object):
     def __init__(self, config, restart):
@@ -44,7 +44,7 @@ class Frontier(object):
             ### CUSTOM ADD ###
             #print(url)
 
-            if not completed and is_valid(url):
+            if not completed and isValid(url):
                 self.to_be_downloaded.append(url)
                 tbd_count += 1
         self.logger.info(

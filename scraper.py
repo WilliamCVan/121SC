@@ -28,7 +28,10 @@ def scraper(url, resp):
         tutils.robotsTxtParseSeeds()
         storeSeeds += 1
     links = extract_next_links(url, resp)
-    return list()
+    if (links != None):
+        return [link for link in links if tutils.isValid(link)]  # automatically adds to frontier
+    else:
+        return list()
 
 def extract_next_links(url, resp):
     listLinks = list()

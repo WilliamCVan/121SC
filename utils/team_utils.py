@@ -5,8 +5,18 @@ from urllib.robotparser import RobotFileParser
 import re
 from urllib.parse import urljoin
 from utils import normalize, get_urlhash
-
+import redis
 import tldextract
+
+
+r = redis.Redis(host="localhost",port=6379,db=0)
+robotsCheck ="robotsDict"
+urlSet="urls"
+mostTokensUrl="mostTokens"
+setDomainCount = "setDomainCount"
+tokenCount = "tokenCount"
+blackList = "blackListed"
+urlSet = "urls"
 
 def robotsTxtParse(url):
     # Finds the robot.txt of a domain and subdomain(if one exists) and
@@ -18,16 +28,22 @@ def robotsTxtParse(url):
     robot.set_url(domain)
     robot.read()
 
-    if domain != '' and domain not in DataStore.robotsCheck:
-        DataStore.robotsCheck[domain] = robot
+    val=r.hget(robotsCheck,"bhh").decode('utf-8')
+    #if domain != '' and domain in DataStore.robotsCheck:
+        #DataStore.robotsCheck[domain] = robot
+
+    if domain != '' and r.hexists(robotsCheck,domain):
+        r.hset(robotsCheck,domain,robot)
 
     subdomain = getSubDomain(url)
-    if subdomain != '' and subdomain not in DataStore.robotsCheck:
+    #if subdomain != '' and subdomain not in DataStore.robotsCheck:
+    if subdomain != '' and not r.hexists(robotsCheck,subdomain):
         robot = RobotFileParser()
         robot.set_url(subdomain)
         robot.read()
 
-        DataStore.robotsCheck[subdomain] = robot
+        #DataStore.robotsCheck[subdomain] = robot
+        r.hmset(robotsCheck,subdomain,robot)
 
 def robotsTxtParseSeeds():
     # Stores the robot.txt of the seed urls in DataStore.RobotChecks
@@ -41,7 +57,8 @@ def robotsTxtParseSeeds():
         robot = RobotFileParser()
         robot.set_url(domain)
         robot.read()
-        DataStore.robotsCheck[domain] = robot
+        r.hmset(robotsCheck, domain, robot)
+        #DataStore.robotsCheck[domain] = robot
 
 def getDomain(url):
     # Gets the domain or subdomain of a url and returns it.
@@ -82,7 +99,8 @@ def incrementSubDomain(strDomain):
     # MAYBE remove the uri.scheme, since it doesn't matter the protocol #
     result = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)   #remove slash at end
 
-    DataStore.subDomainCount[result] = DataStore.subDomainCount.get(result, 0) + 1
+    r.hset(setDomainCount)
+    #DataStore.subDomainCount[result] = DataStore.subDomainCount.get(result, 0) + 1
 
     if "ics.uci.edu" in result:
         if strDomain not in DataStore.urlSeenBefore:
@@ -101,21 +119,30 @@ def printIcsSubDomains():
 def tokenize(url, rawText):
     listTemp = re.split(r'[^a-z0-9]+', rawText.lower())
 
+    #if r.hget(mostTokensUrl,)
+
     if(DataStore.mostTokensUrl[1] < len(listTemp)):
         DataStore.mostTokensUrl[0] = url
         DataStore.mostTokensUrl[1] = len(listTemp)
+        # cant find a workaround so im just storing it locally and in the database
+        r.delete(mostTokensUrl)
+        r.hset(mostTokensUrl,url,len(listTemp))
 
     for word in listTemp:
+        tokens = 0
         if (len(word) > 0):
-            DataStore.tokensCount[word] = DataStore.tokensCount.get(word, 0) + 1
+            tokens+=1
+            r.hset(tokenCount,word,tokens)
+            #DataStore.tokensCount[word] = DataStore.tokensCount.get(word, 0) + 1
 
     if (len(listTemp) == 0):
-        DataStore.blackList.add(url)
+        r.sadd(blackList,url)
+        #DataStore.blackList.add(url)
 
 
 #if url has been blacklisted before
 def isBlackListed(str):
-    if str in DataStore.blackList:
+    if r.sismember(blackList,str):
         return True
     return False
 
@@ -147,7 +174,8 @@ def multipleDir(str):
     for i in url:
         if i in dict:
             dict[i] +=1
-            DataStore.blackList.add(str)
+            r.sadd(blackList,str)
+            #DataStore.blackList.add(str)
             return True
         else:
             dict[i] = 1
@@ -178,7 +206,7 @@ def isValid(str):
 
     if isBlackListed(str):
         return False
-    if str in DataStore.urlSeenBefore:
+    if r.sismember(urlSet,str):
         return False
     if multipleDir(str):
         return False

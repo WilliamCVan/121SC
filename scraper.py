@@ -5,6 +5,10 @@ from bs4 import BeautifulSoup , Comment
 from crawler.datastore import DataStore
 import utils.team_utils as tutils
 from urllib.robotparser import RobotFileParser
+import redis
+
+r = redis.Redis(host="localhost",port=6379,db=0)
+urlSet="urls"
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -29,10 +33,13 @@ def extract_next_links(url, resp):
     # REGEX function HERE to sanitize url
     # removes any fragments
     strCompleteURL = tutils.findUrl(url)[0]
+    #check if url is valid before storing
+    if tutils.isValid(strCompleteURL):
+        r.sadd(urlSet,strCompleteURL)
+    #DataStore.urlSeenBefore.add(strCompleteURL)
+    #if not r.sismember(urlSet,strCompleteURL):
 
-    DataStore.urlSeenBefore.add(strCompleteURL)
-    if strCompleteURL not in DataStore.urlSeenBefore:
-        DataStore.uniqueUrlCount += 1
+        #DataStore.uniqueUrlCount += 1
 
     # increment counter for Domain based on subdomain
     tutils.incrementSubDomain(strCompleteURL)

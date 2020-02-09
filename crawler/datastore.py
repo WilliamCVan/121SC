@@ -7,7 +7,7 @@ class DataStore:
     tokensCount = dict()   #all tokens stored in dict with counts
     urlSeenBefore = set() #unique urls for report, len(urlSeenBefore) = #
     blackList = set()
-    mostTokensUrl = ("", 0) #[url, count]
+    mostTokensUrl = ["", 0] #[url, count]
     uniqueUrlCount = 0
     icsUrlCount = 0
     icsSubDomains = defaultdict(int)

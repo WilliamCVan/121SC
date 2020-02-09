@@ -6,8 +6,14 @@ from crawler.datastore import DataStore
 import utils.team_utils as tutils
 from urllib.robotparser import RobotFileParser
 import redis
-
+import requests
 r = redis.Redis(host="localhost",port=6379,db=0)
+# Not sure if we should have this. From a yt vid I watched
+# https://www.youtube.com/watch?v=dlI-xpQxcuE
+
+#r.set('language', 'Python', px = 10000)
+
+
 urlSet="urls"
 
 storeSeeds = 0;
@@ -26,7 +32,7 @@ def scraper(url, resp):
                 validLinks.append(link)
                 tutils.robotsTxtParse(url)
 
-        return [link for link in links if is_valid(link)]   #automatically adds to frontier
+        return validLinks#[link for link in links if is_valid(link)]   #automatically adds to frontier
     else:
         return list()
 
@@ -35,6 +41,18 @@ def extract_next_links(url, resp):
     if (resp.status > 599): # in case we got out of seed domains
         return  #maybe add to blacklist instead of returning
 
+    #if (resp.status > 400 and resp.status < 500): # should we avoid 400 statuses?
+        #return  #maybe add to blacklist instead of returning
+
+    if(resp.status == 200):
+        #How do we detect if a status 200 returns no data/content?
+        #You check the content length. Look up lxml.html
+        #https://stackoverflow.com/questions/37314246/how-to-get-size-of-a-file-from-webpage-in-beautifulsoup
+        res = requests.head(url)
+        if 'content-length' in res.headers and int(res.headers['content-length']) < 500 and int(res.headers['content-length']) > 6000000:
+            #print("NOT ENOUGH CONTENT")
+            return
+
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
 
     for tag in soup(text=lambda text: isinstance(text,Comment)):
@@ -42,11 +60,11 @@ def extract_next_links(url, resp):
 
     # REGEX function HERE to sanitize url
     # removes any fragments
-    strCompleteURL = tutils.findUrl(url)[0]
+    strCompleteURL = tutils.removeFragment(url)[0]
     #check if url is valid before storing
-    if tutils.isValid(strCompleteURL):
-        r.sadd(urlSet,strCompleteURL)
-    #DataStore.urlSeenBefore.add(strCompleteURL)
+    if is_valid(strCompleteURL):
+        #r.sadd(urlSet,strCompleteURL)
+        DataStore.urlSeenBefore.add(strCompleteURL)
     #if not r.sismember(urlSet,strCompleteURL):
 
         #DataStore.uniqueUrlCount += 1
@@ -74,12 +92,17 @@ def extract_next_links(url, resp):
 def is_valid(url):
     try:
         parsed = urlparse(url)
+        robokey = '://'.join([tutils.getSubDomain(url), parsed.scheme])
+
         if parsed.scheme not in set(["http", "https"]):
             return False
         if not tutils.isValid(url):
             return False
         if url in DataStore.blackList:
             return False
+        if tutils.getSubDomain(url) in DataStore.robotsCheck.keys():
+            robot =  DataStore.robotsCheck[robokey]
+            return robot.can_fetch("*", url)
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"

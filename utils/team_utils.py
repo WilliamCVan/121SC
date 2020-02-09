@@ -26,9 +26,12 @@ icsDomains = {}#Added to keep track of specifically ics Domains
 
 '''
 Finds the domain/subdomain of url gets robots.txt
-Stores the {scheme}://{domain/subdomain} as a key in robotsCheck
-In order to check if url is in the robots.txt of a file, either iterate through robotsCheck
-or call getSubDomain(url) and urlparse(url).scheme to combine them to form the key. Ex in scraper.py is_valid
+Stores the domain/subdomain as a key in robotsCheck
+I think we just need to call subdomain(url) to get a key, because all urls should have the 5 seeds as their domain.
+May remove adding domain to robotchecks part.
+
+Thought process: robots.txt is found in the root page which is usually a domain or subdomain. In order to check if a url is allowed or not, 
+just find its domain/subdomain and look at the disallowed section.
 '''
 def robotsTxtParse(url):
     # Finds the robot.txt of a domain and subdomain(if one exists) and
@@ -38,9 +41,9 @@ def robotsTxtParse(url):
     domain = getDomain(url)
     #val=r.hget(robotsCheck,"bhh").decode('utf-8')
     if domain != '' and domain not in DataStore.robotsCheck:
-        domain = '://'.join([scheme, domain])#add scheme to domain
+        robotTxtUrl = f"{scheme}://{domain}/robots.txt"  # '://'.join([scheme, subdomain])#add scheme to subdomain
         robot = RobotFileParser()
-        robot.set_url('://'.join([domain, 'robots.txt']))
+        robot.set_url(robotTxtUrl)
         robot.read()
         DataStore.robotsCheck[domain] = robot
 
@@ -50,9 +53,9 @@ def robotsTxtParse(url):
     subdomain = getSubDomain(url)
     if subdomain != '' and subdomain not in DataStore.robotsCheck:
     #if subdomain != '' and not r.hexists(robotsCheck,subdomain):
-        subdomain = '://'.join([scheme, subdomain])#add scheme to subdomain
+        robotTxtUrl = f"{scheme}://{subdomain}/robots.txt" #'://'.join([scheme, subdomain])#add scheme to subdomain
         robot = RobotFileParser()
-        robot.set_url('/'.join([subdomain,'robots.txt']))
+        robot.set_url(robotTxtUrl)
         robot.read()
 
         DataStore.robotsCheck[subdomain] = robot
@@ -67,14 +70,15 @@ def robotsTxtParseSeeds():
     'https://www.stat.uci.edu']
     for seedUrl in seedUrls:
         scheme = urlparse(seedUrl).scheme
-        domain = '://'.join([scheme, getSubDomain(seedUrl)])
+        domain = getSubDomain(seedUrl)
+        robotTxtUrl = f"{scheme}://{domain}/robots.txt"  # '://'.join([scheme, subdomain])#add scheme to subdomain
         robot = RobotFileParser()
-        robot.set_url('/'.join([domain,'robots.txt']))
+        robot.set_url(robotTxtUrl)
         robot.read()
         #r.hmset(robotsCheck, domain, robot)
         DataStore.robotsCheck[domain] = robot
 
-### CHANGED TO ADD SCHEME AND SUFFIX TO DOMAIN
+### CHANGED TO ADD SUFFIX TO DOMAIN
 def getDomain(url):
     # Gets the domain or subdomain of a url and returns it.
     ext = tldextract.extract(url)
@@ -83,7 +87,7 @@ def getDomain(url):
 
     return domainUrl
 
-### CHANGED TO ADD SCHEME AND SUFFIX TO DOMAIN
+### CHANGED TO ADD SUFFIX TO DOMAIN
 def getSubDomain(url):
     ext = tldextract.extract(url)
     domainUrl = ''
@@ -228,9 +232,19 @@ def isValid(str):
 
 
 '''
+Problem 3
+
 What are the 50 most common words in the entire set of pages? 
 (Ignore English stop words, which can be found, for example, here (Links to an external site.))
  Submit the list of common words ordered by frequency.
+ 
+ STILL NEEDS TO ACCOUNT FOR STOP WORDS
+ 
+ Thought Process: If I am understandign tokenization correctly, all words and their weights are stored in tokensCount.
+ So in order to find the 50 most used words I just need to sort the key: vals of the dict into a list by decreasing
+ weight value.
+ 
+ After I have printed 50 entries, exit the method.
 '''
 def reportQuestion3():
     count = 0
@@ -241,14 +255,22 @@ def reportQuestion3():
             return
 
 '''
-Retrieves all the data needed to answer question 4.
-NOT DONE YET. Still need to figure out redis. Kinda like pseudo code.
-
+Problem 4
 
 How many subdomains did you find in in the ics.uci.edu domain? 
 Submit the list of subdomains ordered alphabetically and the number 
 of unique pages detected in each subdomain. The content of this list should 
 be lines containing URL, number, for example:
+
+Thought Process: Since we have a set of all the urls we have crawled, I need to filter through them to find sites
+that are subdomains of ics.uci.edu. 
+
+I iterate through the urls, checking if they have ics.uci.edu in the subdomain.
+If they have it, store the url because it is part of ics.uci.edu subdomains.
+Store the subdomain itself in a dict to reference later for unique page counts.
+
+Iterate through the filtered pages, and lookup the subdomain they of ics.uci.edu they belong to.
+Increment count by 1.
 '''
 def reportQuestion4():
     subdomainCount = 0
@@ -271,4 +293,3 @@ def reportQuestion4():
     for url in  subdomainPageSet:
         subdomain = getSubDomain(url)
         subdomainDict[subdomain] += 1
-

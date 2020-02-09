@@ -45,8 +45,7 @@ def extract_next_links(url, resp):
         #return  #maybe add to blacklist instead of returning
 
     if(resp.status == 200):
-        #How do we detect if a status 200 returns no data/content?
-        #You check the content length. Look up lxml.html
+        #Invul said he will look at this later.
         #https://stackoverflow.com/questions/37314246/how-to-get-size-of-a-file-from-webpage-in-beautifulsoup
         res = requests.head(url)
         if 'content-length' in res.headers and int(res.headers['content-length']) < 500 and int(res.headers['content-length']) > 6000000:
@@ -92,7 +91,7 @@ def extract_next_links(url, resp):
 def is_valid(url):
     try:
         parsed = urlparse(url)
-        robokey = '://'.join([tutils.getSubDomain(url), parsed.scheme])
+        subdomain = tutils.getSubDomain(url)#key = '://'.join([tutils.getSubDomain(url), parsed.scheme])
 
         if parsed.scheme not in set(["http", "https"]):
             return False
@@ -100,8 +99,8 @@ def is_valid(url):
             return False
         if url in DataStore.blackList:
             return False
-        if tutils.getSubDomain(url) in DataStore.robotsCheck.keys():
-            robot =  DataStore.robotsCheck[robokey]
+        if subdomain in DataStore.robotsCheck.keys():
+            robot =  DataStore.robotsCheck[subdomain]
             return robot.can_fetch("*", url)
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"

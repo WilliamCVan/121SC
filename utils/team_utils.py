@@ -160,36 +160,6 @@ def tokenize(url, rawText):
         r.sadd(blackList,url)
         #DataStore.blackList.add(url)
 
-def badUrl(str):
-    if "search" in str:
-        return True
-    if "sid" in str:
-        return True
-    #if "&" in str:
-     #   return True
-    if "calendar" in str:
-        return True
-    if "graphics" in str:
-        return True
-    if ".mp4" in str:
-        return True
-    if "color" in str:
-        return True
-    if "ppt" in str:
-        return True
-    if "pdf" in str:
-        return True
-    if ".zip" in str:
-        return True
-    if "www.amazon.com" in str:
-        return True
-    if "year" in str:
-        return True
-    if len(str)>150:
-        return True
-    if "login" in str:
-        return True
-    return False
 
 #### ADDED IF STATEMENTS TO CHECK FOR CALENDAR
 #if url has been blacklisted before
@@ -273,8 +243,6 @@ def isValid(str):
         return False
     if multipleDir(str):
         return False
-    if not isBadURLTwo(str):
-        return False
     if ifConsideredSpam(str):
         return False
     if not ifInUCIDomain(str):
@@ -283,6 +251,50 @@ def isValid(str):
         return False
     return True
 
+def badUrl(str):
+    if "search" in str:
+        return True
+    if "sid" in str:
+        return True
+    #if "&" in str:
+     #   return True
+    if "calendar" in str:
+        return True
+    if "graphics" in str:
+        return True
+    if "color" in str:
+        return True
+    if "ppt" in str:
+        return True
+    if "pdf" in str:
+        return True
+    if "year" in str:
+        return True
+    if len(str)>150:
+        return True
+    if "login" in str:
+        return True
+    if "://cbcl" in str:
+        return False
+    if "www.amazon.com" in str:
+        return False
+    if "http://cellfate.uci.edu" in str:
+        return False
+    if "https://ugradforms.ics.uci.edu" in str:
+        return False
+    if "http://catalogue.uci.edu" in str:
+        return False
+    if "http://www.studyabroad.uci.edu" in str:
+        return False
+    return False
+
+def robotsAllowsSite(subdomain, url):
+    if subdomain in DataStore.robotsCheck.keys():
+        # if r.hexists(robotsCheck,subdomain):
+        # robot = r.hget(robotsCheck,subdomain).decode('utf-8')
+        robot = DataStore.robotsCheck[subdomain]
+        return robot.can_fetch("*", url)
+
 def is_validDEFAULT(url):
     try:
         parsed = urlparse(url)
@@ -290,12 +302,15 @@ def is_validDEFAULT(url):
 
         if parsed.scheme not in set(["http", "https"]):
             return False
+
+        if not robotsAllowsSite(subdomain, url):
+            return False
         #if url in DataStore.blackList:
         #if r.sismember(visitedURL,url):
             #return False
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|jpg|ico"
-            + r"|png|tiff?|mid|mp2|mp3|mp4"
+            + r"|png|tiff?|mid|mp2|mp3|mp4|rvi"
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
             + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
@@ -311,56 +326,6 @@ def is_validDEFAULT(url):
         #     #robot = r.hget(robotsCheck,subdomain).decode('utf-8')
         #     robot =  DataStore.robotsCheck[subdomain]
         #     return robot.can_fetch("*", url)
-
-def isBadURLTwo(str):
-    url = removeFragment(str)
-
-    if isBlackListed(str):
-        return False
-    #if  r.sismember(blackList, str):
-    #if str in DataStore.blackList:#r.sismember(urlSet,str):
-        #return False
-    if r.sismember(visitedURL,str):
-    #if str in DataStore.urlSeenBefore:# ADDED CHECK AS OF 2/9 2AM
-        return False
-    if multipleDir(str):
-        return False
-    if ifConsideredSpam(str):
-        return False
-    if "://cbcl" in str:
-        return False
-    if not ifInUCIDomain(str):
-        return False
-    if "www.amazon.com" in str:
-        return False
-    if "ppt" in str:
-        return False
-    if "pdf" in str:
-        return False
-    if "http://cellfate.uci.edu" in str:
-        return False
-    if "https://ugradforms.ics.uci.edu" in str:
-        return False
-    if "http://catalogue.uci.edu" in str:
-        return False
-    if "http://www.studyabroad.uci.edu" in str:
-        return False
-    if ".mp4" in str:
-        return False
-    if ".rvi" in str:
-        return False
-    if ".wmv" in str:
-        return False
-    if ".zip" in str:
-        return False
-    if ".tex" in str:
-        return False
-    if ".jpg" in str:
-        return False
-    if "#_top_" in str:
-        return False
-    return True
-
 
 
 '''

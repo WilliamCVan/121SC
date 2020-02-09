@@ -10,7 +10,7 @@ def download(url, config, logger=None):
     try:
         #20 second timeout added
         resp = requests.get(
-            f"http://{host}:{port}/", timeout=20,
+            f"http://{host}:{port}/", timeout=10,
             params=[("q", f"{url}"), ("u", f"{config.user_agent}")])
         if resp:
             return Response(cbor.loads(resp.content))

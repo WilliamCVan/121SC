@@ -31,11 +31,16 @@ install dependencies:
 # pip install --user packages/spacetime-2.1.1-py3-none-any.whl
 # pip install --user -r packages/requirements.txt
 
+launch it: python launch.py
+
+
 INSTALL packages in Anaconda Navigator Environment:
 -lxml
 -beautifulsoup4
+-redis-py
+    pip (crawlIS):
+        pip install tldextract
 
-launch it: python launch.py
 
 
 # sudo apt install redis-server

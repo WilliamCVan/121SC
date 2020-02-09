@@ -7,7 +7,7 @@ install dependencies:
 # pip3 install --user packages/spacetime-2.1.1-py3-none-any.whl
 # pip3 install --user -r packages/requirements.txt
 # pip3 install --user lxml
-# pip3 install -- user tldextract
+# pip3 install --user tldextract
 Now, configure your config.ini
 
 launch it: python3 launch.py

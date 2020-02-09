@@ -44,9 +44,10 @@ def extract_next_links(url, resp):
         r.sadd(blackList,url)
         return  #maybe add to blacklist instead of returning
 
-    if (int(resp.raw_response.headers["_store"]["content-length"][1]) > 2000000): #2MB limit
-        r.sadd(blackList,url)
-        return  #maybe add t
+    if (resp.raw_response.status_code < 199 and resp.raw_response.status_code < 400):
+        if (int(resp.raw_response.headers._store["content-length"][1]) > 2000000): #2MB limit
+            r.sadd(blackList,url)
+            return
 
     #if(resp.status == 200):
         #Invul said he will look at this later.

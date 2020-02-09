@@ -7,7 +7,7 @@ from utils import normalize, get_urlhash
 import redis
 import tldextract
 
-#r = redis.Redis(host="localhost",port=6379,db=0)
+r = redis.Redis(host="localhost",port=6379,db=0)
 
 # Not sure if we should have this. From a yt vid I watched
 # https://www.youtube.com/watch?v=dlI-xpQxcuE
@@ -15,12 +15,15 @@ import tldextract
 #r.set('language', 'Python', px = 10000)
 
 
-#robotsCheck ="robotsDict"
-#mostTokensUrl="mostTokens"
-#setDomainCount = "setDomainCount"
-#tokenCount = "tokenCount"
-#blackList = "blackListed"
-#urlSet = "urls"
+robotsCheck ="robotsDict"
+mostTokensUrl="mostTokens"
+setDomainCount = "setDomainCount"
+tokenCount = "tokenCount"
+blackList = "blackListed"
+visitedURL = "urls"
+#ask artur for explination these are actually pretty useful
+four0four = ""
+
 
 icsDomains = {}#Added to keep track of specifically ics Domains
 
@@ -41,25 +44,27 @@ def robotsTxtParse(url):
     domain = getDomain(url)
     #val=r.hget(robotsCheck,"bhh").decode('utf-8')
     if domain != '' and domain not in DataStore.robotsCheck:
+    #if domain != '' and not r.hexists(robotsCheck, domain):
         robotTxtUrl = f"{scheme}://{domain}/robots.txt"  # '://'.join([scheme, subdomain])#add scheme to subdomain
         robot = RobotFileParser()
         robot.set_url(robotTxtUrl)
         robot.read()
+        #r.hset(robotsCheck, domain, robot)
         DataStore.robotsCheck[domain] = robot
 
     #if domain != '' and not r.hexists(robotsCheck,domain):
         #r.hset(robotsCheck,domain,robot)
 
     subdomain = getSubDomain(url)
-    if subdomain != '' and subdomain not in DataStore.robotsCheck:
-    #if subdomain != '' and not r.hexists(robotsCheck,subdomain):
+    #if subdomain != '' and subdomain not in DataStore.robotsCheck:
+    if subdomain != '' and not r.hexists(robotsCheck,subdomain):
         robotTxtUrl = f"{scheme}://{subdomain}/robots.txt" #'://'.join([scheme, subdomain])#add scheme to subdomain
         robot = RobotFileParser()
         robot.set_url(robotTxtUrl)
         robot.read()
-
+        #r.hset(robotsCheck, subdomain, robot)
         DataStore.robotsCheck[subdomain] = robot
-        #r.hmset(robotsCheck,subdomain,robot)
+
 
 def robotsTxtParseSeeds():
     # Stores the robot.txt of the seed urls in DataStore.RobotChecks
@@ -75,7 +80,6 @@ def robotsTxtParseSeeds():
         robot = RobotFileParser()
         robot.set_url(robotTxtUrl)
         robot.read()
-        #r.hmset(robotsCheck, domain, robot)
         DataStore.robotsCheck[domain] = robot
 
 ### CHANGED TO ADD SUFFIX TO DOMAIN
@@ -89,7 +93,7 @@ def getDomain(url):
 
 ### CHANGED TO ADD SUFFIX TO DOMAIN
 def getSubDomain(url):
-    ext = tldextract.extract(url)
+    ext = tldextract.extract(str(url))
     domainUrl = ''
     if ext.subdomain == '':  # Returns url with subdomain attached.
         return '.'.join([domainUrl, ext.suffix])
@@ -118,43 +122,80 @@ def incrementSubDomain(strDomain):
     # MAYBE remove the uri.scheme, since it doesn't matter the protocol #
     result = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)   #remove slash at end
 
+    if r.hexists(setDomainCount,result):
+        val = r.hget(setDomainCount,result).decode('utf-8')
+        val = int(val)
+        val += 1
+        r.hset(setDomainCount,result,val)
+    else:
+        r.hset(setDomainCount,result,1)
+
     #r.hset(setDomainCount)
-    DataStore.subDomainCount[result] = DataStore.subDomainCount.get(result, 0) + 1
+    #DataStore.subDomainCount[result] = DataStore.subDomainCount.get(result, 0) + 1
 
 
 def tokenize(url, rawText):
 
     listTemp = re.split(r'[^a-z0-9]+', rawText.lower())
 
-    #if r.hget(mostTokensUrl,)
 
-    if(DataStore.mostTokensUrl[1] < len(listTemp)):
+    #if r.hget(mostTokensUrl, ):
+    if (DataStore.mostTokensUrl[1] < len(listTemp)):
         DataStore.mostTokensUrl[0] = url
         DataStore.mostTokensUrl[1] = len(listTemp)
         # cant find a workaround so im just storing it locally and in the database
-        #r.delete(mostTokensUrl)
-        #r.hset(mostTokensUrl,url,len(listTemp))
+        r.delete(mostTokensUrl)
+        r.hset(mostTokensUrl,url,len(listTemp))
 
 
     for word in listTemp:
         tokens = 0
         if (len(word) > 0):
             tokens+=1
-            #r.hset(tokenCount,word,tokens)
-            DataStore.tokensCount[word] = DataStore.tokensCount.get(word, 0) + 1
+        if r.hexists(tokenCount,word):
+            r.hset(tokenCount,word,tokens)
+            #DataStore.tokensCount[word] = DataStore.tokensCount.get(word, 0) + 1
 
     if (len(listTemp) == 0):
-        #r.sadd(blackList,url)
-        DataStore.blackList.add(url)
+        r.sadd(blackList,url)
+        #DataStore.blackList.add(url)
 
+def badUrl(str):
+    if "search" in str:
+        return True
+    if "sid" in str:
+        return True
+    #if "&" in str:
+     #   return True
+    if "calendar" in str:
+        return True
+    if "graphics" in str:
+        return True
+    if ".mp4" in str:
+        return True
+    if "color" in str:
+        return True
+    if ".ppt" in str:
+        return True
+    if ".zip" in str:
+        return True
+    if "www.amazon.com" in str:
+        return True
+    if "year" in str:
+        return True
+    if len(str)>150:
+        return True
+    if "login" in str:
+        return True
+    return False
 
 #### ADDED IF STATEMENTS TO CHECK FOR CALENDAR
 #if url has been blacklisted before
 def isBlackListed(str):
-    #if r.sismember(blackList,str):
-    if str in DataStore.blackList:
+    if r.sismember(blackList,str):
+    #if str in DataStore.blackList:
         return True
-    elif 'https://today.uci.edu/department/information_computer_sciences/calendar/' in str:
+    elif 'https://today.uci.edu/department/information_computer_sciences/calendar' in str:
         return True
     elif 'https://today.uci.edu/calendar' in str:
         return True
@@ -162,7 +203,7 @@ def isBlackListed(str):
     return False
 
 #extract url
-def removeFragment(str):
+def extractURL(str):
     try:
         url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', str)
         if ',' in url[0]:
@@ -171,8 +212,12 @@ def removeFragment(str):
     except:
         return ""
 
+def containsPdf(str):
+    if ".pdf" in str:
+        return True
+    return False
 
-def removeQuery(str):
+def removeFragment(str):
     str = str.split('?')[0]
     return str
 
@@ -189,8 +234,8 @@ def multipleDir(str):
     for i in url:
         if i in dict:
             dict[i] +=1
-            #r.sadd(blackList,str)
-            DataStore.blackList.add(str)
+            r.sadd(blackList,str)
+            #DataStore.blackList.add(str)
             return True
         else:
             dict[i] = 1
@@ -209,7 +254,7 @@ def ifConsideredSpam(str):
 def ifInUCIDomain(str):
     try:
         str = str.split('?')[0]
-        if 'uci.edu'in str:
+        if '.uci.edu'in str:
             return True
         return False
     except:
@@ -217,19 +262,25 @@ def ifInUCIDomain(str):
 
 #is url valid
 def isValid(str):
-    url = removeFragment(str)
+    #url = removeFragment(str)
 
     if isBlackListed(str):
         return False
-    if str in DataStore.blackList:#r.sismember(urlSet,str):
-        return False
-    if str in DataStore.urlSeenBefore:# ADDED CHECK AS OF 2/9 2AM
+    #if  r.sismember(blackList, str):
+    #if str in DataStore.blackList:#r.sismember(urlSet,str):
+        #return False
+    if r.sismember(visitedURL,str):
+    #if str in DataStore.urlSeenBefore:# ADDED CHECK AS OF 2/9 2AM
         return False
     if multipleDir(str):
         return False
     if ifConsideredSpam(str):
         return False
-    if ifInUCIDomain(str) == False:
+    if not ifInUCIDomain(str):
+        return False
+    if containsPdf(str):
+        return False
+    if badUrl(str):
         return False
     return True
 

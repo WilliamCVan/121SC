@@ -13,11 +13,11 @@ stopWords = {"a","about","above","after","again","against","all","am","an","and"
 "what","what's","when","when's","where","where's","which","while","who","who's","whom","why","why's","with", "won't","would","wouldn't",
 "you","you'd","you'll","you're","you've","your","yours","yourself","yourselves"}
 
-def insertRedisKey():
-    r = redis.Redis(host='192.168.111.128', port=6379)
+#def insertRedisKey():
+    #r = redis.Redis(host='192.168.111.128', port=6379)
 
-    r.set('foo', 'bar')
-    value = r.get('foo')
-    print(value)
+    #r.set('foo', 'bar')
+    #value = r.get('foo')
+    #print(value)
 
-insertRedisKey()
+#insertRedisKey()

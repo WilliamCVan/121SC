@@ -38,6 +38,9 @@ def extract_next_links(url, resp):
 
     # if Levenshtein.distance(url, tutils.four0four) <= 10:
     #     return
+    if(resp.raw_response == None):
+        r.sadd(blackList, url)
+        return
 
     if (resp.raw_response.status_code > 399 and resp.raw_response.status_code < 600): # should we avoid 400 statuses?
         r.sadd(blackList,url)

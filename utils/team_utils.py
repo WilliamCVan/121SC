@@ -65,7 +65,7 @@ def getDomain(url):
 
     ext = tldextract.extract(url)
     domainUrl = ext.domain
-    domainUrl = '.'.join(domainUrl, ext.suffix)
+    domainUrl = '.'.join([domainUrl, ext.suffix])
 
     return domainUrl
 
@@ -75,7 +75,7 @@ def getSubDomain(url):
     if ext.subdomain == '':  # Returns url with subdomain attached.
         return domainUrl
     domainUrl = '.'.join(ext[:2])
-    domainUrl = '.'.join(domainUrl, ext.suffix)
+    domainUrl = '.'.join([domainUrl, ext.suffix])
 
     return domainUrl
 

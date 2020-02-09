@@ -214,11 +214,6 @@ def extractURL(str):
     except:
         return ""
 
-def containsPdf(str):
-    if ".pdf" in str:
-        return True
-    return False
-
 def removeFragment(str):
     str = str.split('?')[0]
     return str
@@ -264,7 +259,61 @@ def ifInUCIDomain(str):
 
 #is url valid
 def isValid(str):
-    #url = removeFragment(str)
+    str = removeFragment(str)
+
+    if isBlackListed(str):
+        return False
+    #if  r.sismember(blackList, str):
+    #if str in DataStore.blackList:#r.sismember(urlSet,str):
+        #return False
+    if r.sismember(visitedURL, str):
+    #if str in DataStore.urlSeenBefore:# ADDED CHECK AS OF 2/9 2AM
+        return False
+    if not is_validDEFAULT(str):
+        return False
+    if multipleDir(str):
+        return False
+    if not isBadURLTwo(str):
+        return False
+    if ifConsideredSpam(str):
+        return False
+    if not ifInUCIDomain(str):
+        return False
+    if badUrl(str):
+        return False
+    return True
+
+def is_validDEFAULT(url):
+    try:
+        parsed = urlparse(url)
+        subdomain = getSubDomain(url)#key = '://'.join([tutils.getSubDomain(url), parsed.scheme])
+
+        if parsed.scheme not in set(["http", "https"]):
+            return False
+        #if url in DataStore.blackList:
+        #if r.sismember(visitedURL,url):
+            #return False
+        return not re.match(
+            r".*\.(css|js|bmp|gif|jpe?g|jpg|ico"
+            + r"|png|tiff?|mid|mp2|mp3|mp4"
+            + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
+            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
+            + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
+            + r"|epub|dll|cnf|tgz|sha1"
+            + r"|thmx|mso|arff|rtf|jar|csv"
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+    except TypeError:
+        print ("TypeError for ", parsed)
+        return False
+
+        # if subdomain in DataStore.robotsCheck.keys():
+        # #if r.hexists(robotsCheck,subdomain):
+        #     #robot = r.hget(robotsCheck,subdomain).decode('utf-8')
+        #     robot =  DataStore.robotsCheck[subdomain]
+        #     return robot.can_fetch("*", url)
+
+def isBadURLTwo(str):
+    url = removeFragment(str)
 
     if isBlackListed(str):
         return False
@@ -278,13 +327,40 @@ def isValid(str):
         return False
     if ifConsideredSpam(str):
         return False
+    if "://cbcl" in str:
+        return False
     if not ifInUCIDomain(str):
         return False
-    if containsPdf(str):
+    if "www.amazon.com" in str:
         return False
-    if badUrl(str):
+    if "ppt" in str:
+        return False
+    if "pdf" in str:
+        return False
+    if "http://cellfate.uci.edu" in str:
+        return False
+    if "https://ugradforms.ics.uci.edu" in str:
+        return False
+    if "http://catalogue.uci.edu" in str:
+        return False
+    if "http://www.studyabroad.uci.edu" in str:
+        return False
+    if ".mp4" in str:
+        return False
+    if ".rvi" in str:
+        return False
+    if ".wmv" in str:
+        return False
+    if ".zip" in str:
+        return False
+    if ".tex" in str:
+        return False
+    if ".jpg" in str:
+        return False
+    if "#_top_" in str:
         return False
     return True
+
 
 
 '''

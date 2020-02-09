@@ -1,0 +1,21 @@
+def scraper(url, resp):
+    global storeSeeds
+    if storeSeeds == 0:#Store seed robot.txts only once.
+        tutils.robotsTxtParseSeeds()
+        storeSeeds += 1
+    links = extract_next_links(url, resp)
+    if(links != None):
+        validLinks = []
+        for link in links:
+            if tutils.isValid(link):
+                #DataStore.urlSeenBefore.add(link)# ADDED AS OF 2/9 2AM
+                r.sadd(visitedURL,link)
+                str=tutils.removeFragment(link)
+                r.sadd(uniqueUrl,str)
+                validLinks.append(link)
+                tutils.robotsTxtParse(url)
+            else:
+                r.sadd(blackList, url)
+        return validLinks#[link for link in links if is_valid(link)]   #automatically adds to frontier
+    else:
+        return list()

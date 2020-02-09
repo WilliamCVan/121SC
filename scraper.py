@@ -9,6 +9,7 @@ import redis
 
 r = redis.Redis(host="localhost",port=6379,db=0)
 urlSet="urls"
+startUp = 0#var so robotsTxtParseSeeds only runs once
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -18,14 +19,18 @@ def scraper(url, resp):
         return list()
 
 def extract_next_links(url, resp):
+    global startUp
+
     listLinks = list()
     if (resp.status > 599): # in case we got out of seed domains
         return  #maybe add to blacklist instead of returning
 
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
 
-    tutils.robotTxtParse(url)
-    tutils.robotsTxtParseSeeds()
+    tutils.robotsTxtParse(url)
+    if startUp == 0:
+        tutils.robotsTxtParseSeeds()
+        startUp += 1
 
     for tag in soup(text=lambda text: isinstance(text,Comment)):
         tag.extract()

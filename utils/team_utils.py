@@ -8,7 +8,6 @@ from utils import normalize, get_urlhash
 import redis
 import tldextract
 
-
 r = redis.Redis(host="localhost",port=6379,db=0)
 robotsCheck ="robotsDict"
 urlSet="urls"
@@ -65,7 +64,7 @@ def getDomain(url):
 
     ext = tldextract.extract(url)
     domainUrl = ext.domain
-    domainUrl = '.'.join(domainUrl, ext.suffix)
+    domainUrl = '.'.join([ext.domain, ext.suffix])
 
     return domainUrl
 
@@ -74,8 +73,8 @@ def getSubDomain(url):
     domainUrl = ''
     if ext.subdomain == '':  # Returns url with subdomain attached.
         return domainUrl
-    domainUrl = '.'.join(ext[:2])
-    domainUrl = '.'.join(domainUrl, ext.suffix)
+    domainUrl = '.'.join(ext[:2])#joins subdomain and domain
+    domainUrl = '.'.join([domainUrl, ext.suffix])
 
     return domainUrl
 
@@ -93,7 +92,6 @@ def returnFullURL(parent_url, strInput):
         return urljoin(result, strInput)
 
 
-
 def incrementSubDomain(strDomain):
     parsed_uri = urlparse(strDomain)
     # MAYBE remove the uri.scheme, since it doesn't matter the protocol #
@@ -102,18 +100,19 @@ def incrementSubDomain(strDomain):
     r.hset(setDomainCount)
     #DataStore.subDomainCount[result] = DataStore.subDomainCount.get(result, 0) + 1
 
-    if "ics.uci.edu" in result:
-        if strDomain not in DataStore.urlSeenBefore:
-            DataStore.icsSubDomains[result] += 1
-        elif strDomain not in DataStore.icsSubDomains.keys():
-            DataStore.icsSubDomains[result]
+    #if "ics.uci.edu" in result:
+        #if strDomain not in DataStore.urlSeenBefore:
+            #DataStore.icsSubDomains[result] += 1
+        #elif strDomain not in DataStore.icsSubDomains.keys():
+            #DataStore.icsSubDomains[result]
 
-def printIcsSubDomains():
+def reportIcsSubDomains():
+    pass
     #Prints out the subdomains in alphabetical order, along with the amount of unique pages
-    sortedDomains = [(subDomain, pageCount) for subDomain, pageCount in DataStore.icsSubDomains]
-    sortedDomains.sort(key = lambda x: x[0])
-    for subDomain, pageCount in sortedDomains:
-        print(f"{subDomain} -> {pageCount}")
+    #sortedDomains = [(subDomain, pageCount) for subDomain, pageCount in DataStore.icsSubDomains]
+    #sortedDomains.sort(key = lambda x: x[0])
+    #for subDomain, pageCount in sortedDomains:
+        #print(f"{subDomain} -> {pageCount}")
 
 
 def tokenize(url, rawText):
@@ -215,3 +214,4 @@ def isValid(str):
     if ifInUCIDomain(str) == False:
         return False
     return True
+

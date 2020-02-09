@@ -175,7 +175,9 @@ def badUrl(str):
         return True
     if "color" in str:
         return True
-    if ".ppt" in str:
+    if "ppt" in str:
+        return True
+    if "pdf" in str:
         return True
     if ".zip" in str:
         return True

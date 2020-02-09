@@ -10,9 +10,22 @@ import redis
 r = redis.Redis(host="localhost",port=6379,db=0)
 urlSet="urls"
 
+storeSeeds = 0;
+
 def scraper(url, resp):
+    global storeSeeds
+    if storeSeeds == 0:#Store seed robot.txts only once.
+        tutils.robotsTxtParseSeeds()
+        storeSeeds += 1
+
     links = extract_next_links(url, resp)
     if(links != None):
+        validLinks = []
+        for link in links:
+            if is_valid(link):
+                validLinks.append(link)
+                tutils.robotsTxtParse(url)
+
         return [link for link in links if is_valid(link)]   #automatically adds to frontier
     else:
         return list()
@@ -23,9 +36,6 @@ def extract_next_links(url, resp):
         return  #maybe add to blacklist instead of returning
 
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
-
-    tutils.robotsTxtParse(url)
-    tutils.robotsTxtParseSeeds()
 
     for tag in soup(text=lambda text: isinstance(text,Comment)):
         tag.extract()

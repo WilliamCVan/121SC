@@ -11,17 +11,23 @@ import tldextract
 
 r = redis.Redis(host="localhost",port=6379,db=0)
 robotsCheck ="robotsDict"
-urlSet="urls"
 mostTokensUrl="mostTokens"
 setDomainCount = "setDomainCount"
 tokenCount = "tokenCount"
 blackList = "blackListed"
 urlSet = "urls"
 
+icsWebPageCount = "icsPages"#Added
+
+'''
+Called on each url brought from frontiers
+
+param: url 
+'''
 def robotsTxtParse(url):
     # Finds the robot.txt of a domain and subdomain(if one exists) and
     # Stores it in DataStore.RobotChecks
-    # QUESTION: Should we have the check for robotsCheck before inside function or before calling it?
+
 
     domain = getDomain(url)
     robot = RobotFileParser()
@@ -103,7 +109,7 @@ def incrementSubDomain(strDomain):
     #DataStore.subDomainCount[result] = DataStore.subDomainCount.get(result, 0) + 1
 
     if "ics.uci.edu" in result:
-        if strDomain not in DataStore.urlSeenBefore:
+        if not r.hexists(urlSet,strDomain):
             DataStore.icsSubDomains[result] += 1
         elif strDomain not in DataStore.icsSubDomains.keys():
             DataStore.icsSubDomains[result]
@@ -114,7 +120,6 @@ def printIcsSubDomains():
     sortedDomains.sort(key = lambda x: x[0])
     for subDomain, pageCount in sortedDomains:
         print(f"{subDomain} -> {pageCount}")
-
 
 def tokenize(url, rawText):
     listTemp = re.split(r'[^a-z0-9]+', rawText.lower())

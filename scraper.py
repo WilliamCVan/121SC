@@ -17,6 +17,7 @@ r = redis.Redis(host="localhost",port=6379,db=0)
 urlSet="urls"
 
 storeSeeds = 0;
+repeatedUrl = ['url',0]#If we visit the same url 3 times in a row, add it to blacklist and skip.
 
 def scraper(url, resp):
     global storeSeeds
@@ -29,6 +30,7 @@ def scraper(url, resp):
         validLinks = []
         for link in links:
             if is_valid(link):
+                DataStore.urlSeenBefore.add(link)# ADDED AS OF 2/9 2AM
                 validLinks.append(link)
                 tutils.robotsTxtParse(url)
 

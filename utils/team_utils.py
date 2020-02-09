@@ -135,6 +135,7 @@ def tokenize(url, rawText):
         #r.delete(mostTokensUrl)
         #r.hset(mostTokensUrl,url,len(listTemp))
 
+
     for word in listTemp:
         tokens = 0
         if (len(word) > 0):
@@ -221,6 +222,8 @@ def isValid(str):
     if isBlackListed(str):
         return False
     if str in DataStore.blackList:#r.sismember(urlSet,str):
+        return False
+    if str in DataStore.urlSeenBefore:# ADDED CHECK AS OF 2/9 2AM
         return False
     if multipleDir(str):
         return False

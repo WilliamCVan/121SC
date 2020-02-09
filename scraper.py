@@ -27,7 +27,7 @@ def scraper(url, resp):
     if storeSeeds == 0:  # Store seed robot.txts only once.
         tutils.robotsTxtParseSeeds()
         storeSeeds += 1
-        
+
     links = extract_next_links(url, resp)
     if (links != None):
         return [link for link in links if tutils.isValid(link)]  # automatically adds to frontier
@@ -39,7 +39,7 @@ def extract_next_links(url, resp):
 
     # if Levenshtein.distance(url, tutils.four0four) <= 10:
     #     return
-    if(resp.raw_response == None):
+    if(resp.raw_response == None):  #600+ statuses return a None object for resp.raw_response
         r.sadd(blackList, url)
         return
 
@@ -55,15 +55,9 @@ def extract_next_links(url, resp):
         if (int(resp.raw_response.headers._store["content-length"][1]) > 2000000): #2MB limit
             r.sadd(blackList,url)
             return
-
-    #if(resp.status == 200):
-        #Invul said he will look at this later.
-        #https://stackoverflow.com/questions/37314246/how-to-get-size-of-a-file-from-webpage-in-beautifulsoup
-        #res = requests.head(url)
-        #if 'content-length' in res.headers and int(res.headers['content-length']) < 500 and int(res.headers['content-length']) > 6000000:
-            #print("NOT ENOUGH CONTENT")
-            #return
-
+        elif (int(resp.raw_response.headers._store["content-length"][1]) < 500): #500 bytes
+            r.sadd(blackList,url)
+            return
 
     if tutils.isValid(url):
         r.sadd(visitedURL,url)
@@ -101,6 +95,9 @@ def extract_next_links(url, resp):
         # REGEX function HERE to sanitize url and/or urljoin path to hostname
         if(childURL != None):
             url = tutils.returnFullURL(url, childURL)
+
+        if not tutils.isValid(url): #skip invalid urls
+            continue
 
         if(len(url) > 0):
             listLinks.append(url)

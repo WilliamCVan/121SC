@@ -52,11 +52,11 @@ def extract_next_links(url, resp):
         r.sadd(blackList, url)
         return
 
-    if (resp.raw_response.status_code > 399 and resp.raw_response.status_code < 600): # should we avoid 400 statuses?
+    if (resp.raw_response.status_code > 399): # ignore all 400-600 errors
         r.sadd(blackList,url)
         return  #maybe add to blacklist instead of returning
 
-    if (resp.status > 399 and resp.status < 600): # should we avoid 400 statuses?
+    if (resp.status > 399): # ignore all 400-600 errors
         r.sadd(blackList,url)
         return  #maybe add to blacklist instead of returning
 

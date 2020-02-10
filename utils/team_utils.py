@@ -395,12 +395,19 @@ What are the 50 most common words in the entire set of pages?
  After I have printed 50 entries, exit the method.
 '''
 def reportQuestion3():
-    count = 0
-    for word, weight in sorted([(k, v) for k, v in DataStore.tokensCount.items()], key=lambda x: -x[1]):
-        print(f"{word}->{weight}")
-        count+= 1
-        if count >= 50:
-            return
+    # count = 0
+    # for word, weight in sorted([(k, v) for k, v in DataStore.tokensCount.items()], key=lambda x: -x[1]):
+    #     print(f"{word}->{weight}")
+    #     count+= 1
+    #     if count >= 50:
+    #         return
+    dictionaryPython = r.hgetall(TOKEN_COUNT_NAME)
+    diction = dict(json.loads(dictionaryPython[TOKEN_COUNT_KEY]))[TOKEN_COUNT_KEY]
+    diction = dict(json.loads(diction))
+
+    for w in sorted(diction, key=diction.get, reverse=True):
+        print(w, diction[w])
+
 
 '''
 Problem 4

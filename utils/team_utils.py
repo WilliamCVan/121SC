@@ -167,11 +167,6 @@ def isBlackListed(str):
     if r.sismember(blackList,str):
     #if str in DataStore.blackList:
         return True
-    if 'https://today.uci.edu/department/information_computer_sciences/calendar' in str:
-        return True
-    elif 'https://today.uci.edu/calendar' in str:
-        return True
-
     return False
 
 #supposed to split if two urls combined
@@ -234,13 +229,9 @@ def isValid(str):
 
     if isBlackListed(str):
         return False
-    #if  r.sismember(blackList, str):
-    #if str in DataStore.blackList:#r.sismember(urlSet,str):
-        #return False
-
-    # if r.sismember(visitedURL, str):
-    # #if str in DataStore.urlSeenBefore:# ADDED CHECK AS OF 2/9 2AM
-    #     return False
+    if r.sismember(visitedURL, str):
+    #if str in DataStore.urlSeenBefore:# ADDED CHECK AS OF 2/9 2AM
+        return False
     if not is_validDEFAULT(str):
         return False
     if ifConsideredSpam(str):
@@ -289,12 +280,6 @@ def badUrl(str):
     return False
 
 
-def isBlackListed(str):
-    if r.sismember(blackList,str):
-    #if str in DataStore.blackList:
-        return True
-
-
 def robotsAllowsSite(subdomain, url):
     if subdomain in DataStore.robotsCheck.keys():
         # if r.hexists(robotsCheck,subdomain):
@@ -333,6 +318,34 @@ def is_validDEFAULT(url):
         #     #robot = r.hget(robotsCheck,subdomain).decode('utf-8')
         #     robot =  DataStore.robotsCheck[subdomain]
         #     return robot.can_fetch("*", url)
+
+def ifRepeatPath(input):
+    origUrl = input
+    path = urlparse(input).path.strip()
+
+    arrsplit = path.split("/")
+    iCount = 0
+    strcurrent = ""
+    loopiter = 0
+
+    for itoken in arrsplit:
+        if(itoken.strip() == "/"):
+            arrsplit = arrsplit[1:]
+            continue
+        if (itoken.strip() == ""):
+            arrsplit = arrsplit[1:]
+            continue
+
+        strcurrent = arrsplit[0]
+        arrsplit = arrsplit[1:]
+
+        for second in arrsplit:
+            if (second == strcurrent):
+                r.sadd(blackList, origUrl)
+                return True
+    return False
+
+#print(ifRepeatPath('https://www.informatics.uci.edu/grad/student-profiles/grad/graduate-student-profile-christina-rall/'))
 
 
 '''
@@ -399,30 +412,4 @@ def reportQuestion4():
         subdomainDict[subdomain] += 1
 
 
-def ifRepeatPath(input):
-    origUrl = input
-    path = urlparse(input).path.strip()
 
-    arrsplit = path.split("/")
-    iCount = 0
-    strcurrent = ""
-    loopiter = 0
-
-    for itoken in arrsplit:
-        if(itoken.strip() == "/"):
-            arrsplit = arrsplit[1:]
-            continue
-        if (itoken.strip() == ""):
-            arrsplit = arrsplit[1:]
-            continue
-
-        strcurrent = arrsplit[0]
-        arrsplit = arrsplit[1:]
-
-        for second in arrsplit:
-            if (second == strcurrent):
-                r.sadd(blackList, origUrl)
-                return True
-    return False
-
-#print(ifRepeatPath('https://www.informatics.uci.edu/grad/student-profiles/grad/graduate-student-profile-christina-rall/'))

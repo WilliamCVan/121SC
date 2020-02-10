@@ -174,7 +174,8 @@ def isBlackListed(str):
 
     return False
 
-#extract url
+#supposed to split if two urls combined
+# https://canvas.eee.uci.edu/courses/23516/files/folder/lectures?preview-8330088 returns empty when run on
 def extractURL(str):
     try:
         url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', str)
@@ -221,6 +222,7 @@ def ifConsideredSpam(str):
 def ifInUCIDomain(str):
     try:
         str = str.split('?')[0]
+        str = getDomain(str)
         if '.uci.edu'in str:
             return True
         return False
@@ -278,14 +280,18 @@ def badUrl(str):
         return False
     if "www.amazon.com" in str:
         return False
-    if "http://cellfate.uci.edu" in str:
+    if "difftype=sidebyside" in str:
         return False
-    if "https://ugradforms.ics.uci.edu" in str:
-        return False
-    if "http://catalogue.uci.edu" in str:
-        return False
-    if "http://www.studyabroad.uci.edu" in str:
-        return False
+    # Comment out 2/9/2020 at 3:26PM
+    # Try re-running crawler with updated rules
+    # if "http://cellfate.uci.edu" in str:
+    #     return False
+    # if "https://ugradforms.ics.uci.edu" in str:
+    #     return False
+    # if "http://catalogue.uci.edu" in str:
+    #     return False
+    # if "http://www.studyabroad.uci.edu" in str:
+    #     return False
     return False
 
 def robotsAllowsSite(subdomain, url):

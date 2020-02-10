@@ -59,6 +59,14 @@ def extract_next_links(url, resp):
             r.sadd(blackList,url)
             return
 
+    if (resp.raw_response.status_code < 199 and resp.raw_response.status_code < 400):
+        if "text" not in (resp.raw_response.headers._store["content-type"]) or "application/json" not in (resp.raw_response.headers._store["content-type"]):
+            r.sadd(blackList, url)
+            return
+
+    # removes any fragments
+    url = tutils.removeFragment(url)
+
     if tutils.isValid(url):
         r.sadd(visitedURL,url)
 
@@ -67,13 +75,6 @@ def extract_next_links(url, resp):
     for tag in soup(text=lambda text: isinstance(text,Comment)):
         tag.extract()
 
-    # REGEX function HERE to sanitize url
-    # removes any fragments
-    #strCompleteURL = tutils.removeFragment(url)
-    #strCompleteURL = tutils.removeFragment(strCompleteURL)url[0]
-    #check if url is valid before storing
-
-    #else:
         #r.sadd(blackList, url)
         #return
         #DataStore.urlSeenBefore.add(strCompleteURL)

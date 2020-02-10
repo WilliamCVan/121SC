@@ -42,6 +42,7 @@ INSTALL packages in Anaconda Navigator Environment:
         pip install tldextract
 
 
+# sudo ufw disable
 
 # sudo apt install redis-server
 # sudo systemctl enable redis-server.service
@@ -51,9 +52,14 @@ bind 127.0.0.1
 After
 bind 0.0.0.0
 
-# adds persistence to redis
+-open the config file: /etc/redis/redis.conf
+# change appendonly to yes and save file
 appendonly yes
 
-# sudo service redis-server restart
-# sudo ufw disable
+#in terminal,
+redis-cli
+127.0.0.1:6379> BGREWRITEAOF
+CTRL + C to exit
 
+# restart the service
+-sudo service redis-server restart

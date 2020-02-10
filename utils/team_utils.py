@@ -438,26 +438,40 @@ Iterate through the filtered pages, and lookup the subdomain they of ics.uci.edu
 Increment count by 1.
 '''
 def reportQuestion4():
-    subdomainCount = 0
+    # subdomainCount = 0
+    #
+    # subdomainDict = dict()
+    # subdomainPageSet = set()
+    # uniquePages = 0
+    #
+    # # Find all the subdomains under ics.uci.edu
+    # for url in DataStore.urlSeenBefore:
+    #     subdomain = getSubDomain(url)
+    #     if 'ics.uci.edu' in subdomain:# Find subdomain of ics.uci.edu
+    #         if subdomain not in subdomainDict.keys():# Making sure url was not a dif page of a seen subdomain
+    #             subdomainCount += 1
+    #             subdomainDict[subdomain] = 0
+    #         parsedUrl = removeFragment(url)
+    #         subdomainPageSet.add(parsedUrl)
+    #
+    # # Iterates through filtered pages. Find the subdomain each page belongs to and increment the unique page count for it.
+    # for url in  subdomainPageSet:
+    #     subdomain = getSubDomain(url)
+    #     subdomainDict[subdomain] += 1
 
-    subdomainDict = dict()
-    subdomainPageSet = set()
-    uniquePages = 0
+    # redis implementation of reading out subdomains and printing their counts
+    dictionaryCount = dict()
 
-    # Find all the subdomains under ics.uci.edu
-    for url in DataStore.urlSeenBefore:
-        subdomain = getSubDomain(url)
-        if 'ics.uci.edu' in subdomain:# Find subdomain of ics.uci.edu
-            if subdomain not in subdomainDict.keys():# Making sure url was not a dif page of a seen subdomain
-                subdomainCount += 1
-                subdomainDict[subdomain] = 0
-            parsedUrl = removeFragment(url)
-            subdomainPageSet.add(parsedUrl)
+    for url in r.smembers(setDomainCount):
+        subDomain = getSubDomain(url)
+        if not subDomain in dictionaryCount:
+            dictionaryCount[subDomain] = 1
+        else:
+            dictionaryCount[subDomain] += 1
 
-    # Iterates through filtered pages. Find the subdomain each page belongs to and increment the unique page count for it.
-    for url in  subdomainPageSet:
-        subdomain = getSubDomain(url)
-        subdomainDict[subdomain] += 1
+    sortedDict = sorted(dictionaryCount.items(), key=lambda x: x[1], reverse=True)
+    for item in sortedDict:
+        print(item[0], item[1])
 
 
 

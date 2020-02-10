@@ -164,9 +164,9 @@ def tokenize(url, rawText):
 #### ADDED IF STATEMENTS TO CHECK FOR CALENDAR
 #if url has been blacklisted before
 def isBlackListed(str):
-    # if r.sismember(blackList,str):
-    # #if str in DataStore.blackList:
-    #     return True
+    if r.sismember(blackList,str):
+    #if str in DataStore.blackList:
+        return True
     if 'https://today.uci.edu/department/information_computer_sciences/calendar' in str:
         return True
     elif 'https://today.uci.edu/calendar' in str:
@@ -277,12 +277,23 @@ def badUrl(str):
     if "login" in str:
         return True
     if "://cbcl" in str:
-        return False
+        return True
     if "www.amazon.com" in str:
-        return False
+        return True
     if "difftype=sidebyside" in str:
-        return False
+        return True
+    if 'https://today.uci.edu/department/information_computer_sciences/calendar' in str:
+        return True
+    if 'https://today.uci.edu/calendar' in str:
+        return True
     return False
+
+
+def isBlackListed(str):
+    if r.sismember(blackList,str):
+    #if str in DataStore.blackList:
+        return True
+
 
 def robotsAllowsSite(subdomain, url):
     if subdomain in DataStore.robotsCheck.keys():

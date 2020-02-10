@@ -251,6 +251,8 @@ def isValid(str):
         return False
     if badUrl(str):
         return False
+    if ifRepeatPath(str):
+        return False
     return True
 
 def badUrl(str):
@@ -282,16 +284,6 @@ def badUrl(str):
         return False
     if "difftype=sidebyside" in str:
         return False
-    # Comment out 2/9/2020 at 3:26PM
-    # Try re-running crawler with updated rules
-    # if "http://cellfate.uci.edu" in str:
-    #     return False
-    # if "https://ugradforms.ics.uci.edu" in str:
-    #     return False
-    # if "http://catalogue.uci.edu" in str:
-    #     return False
-    # if "http://www.studyabroad.uci.edu" in str:
-    #     return False
     return False
 
 def robotsAllowsSite(subdomain, url):
@@ -398,30 +390,28 @@ def reportQuestion4():
         subdomainDict[subdomain] += 1
 
 
-# def ifrepeats():
-#     str = "/grad/student-profiles/grad/graduate-student-profile-christina-rall/"
-#     arrsplit = str.split("/");
-#     iCount = 0
-#     strcurrent = ""
-#     loopiter = 0
-#
-#     for itoken in arrsplit:
-#         if loopiter == 0:
-#             strcurrent = arrsplit[0]
-#             continue
-#
-#         while len(arrsplit) > 0:
-#             if len(itoken.strip()) == 0:
-#                 continue
-#
-#             if (strcurrent == itoken):
-#                 return True
-#
-#         if len(arrsplit) > 0:
-#             arrsplit = arrsplit[1:]
-#         loopiter = loopiter + 1
-#
-# abc = ifrepeats()
-# print(abc)
+def ifRepeatPath(input):
+    path = urlparse(input).path.strip()
 
+    arrsplit = path.split("/")
+    iCount = 0
+    strcurrent = ""
+    loopiter = 0
 
+    for itoken in arrsplit:
+        if(itoken.strip() == "/"):
+            arrsplit = arrsplit[1:]
+            continue
+        if (itoken.strip() == ""):
+            arrsplit = arrsplit[1:]
+            continue
+
+        strcurrent = arrsplit[0]
+        arrsplit = arrsplit[1:]
+
+        for second in arrsplit:
+            if (second == strcurrent):
+                return True
+    return False
+
+#print(ifRepeatPath('https://www.informatics.uci.edu/grad/student-profiles/grad/graduate-student-profile-christina-rall/'))

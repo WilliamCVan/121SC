@@ -303,6 +303,8 @@ def badUrl(str):
         return True
     if "www.amazon.com" in str:
         return True
+    if "events/category/boothing" in str:
+        return True
     if "difftype=sidebyside" in str:
         return True
     if 'https://today.uci.edu/department/information_computer_sciences/calendar' in str:

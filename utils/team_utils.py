@@ -329,8 +329,10 @@ def is_validDEFAULT(url):
         if parsed.scheme not in set(["http", "https"]):
             return False
 
-        if not robotsAllowsSite(subdomain, url):
-            return False
+        ### COMMENT BACK IN WHEN FINISHED ###
+        # if not robotsAllowsSite(subdomain, url):
+        #     return False
+
         #if url in DataStore.blackList:
         #if r.sismember(visitedURL,url):
             #return False

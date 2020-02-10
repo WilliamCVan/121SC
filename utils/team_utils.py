@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 from utils import normalize, get_urlhash
 import redis
 import tldextract
+import json
 
 r = redis.Redis(host="localhost",port=6379,db=0)
 
@@ -18,7 +19,8 @@ r = redis.Redis(host="localhost",port=6379,db=0)
 robotsCheck ="robotsDict"
 mostTokensUrl="mostTokens"
 setDomainCount = "setDomainCount"
-tokenCount = "tokenCount"
+TOKEN_COUNT_NAME = "tokenCount"
+TOKEN_COUNT_KEY = "dictKey"
 blackList = "blackListed"
 visitedURL = "urls"
 #ask artur for explination these are actually pretty useful
@@ -148,13 +150,42 @@ def tokenize(url, rawText):
         r.hset(mostTokensUrl,url,len(listTemp))
 
 
+    ##### STORE word counts in dictionary inside of redis #####
+    # for word in listTemp:
+    #     tokens = 0
+    #     if (len(word) > 0):
+    #         tokens+=1
+    #     if r.hexists(tokenCount,word):
+    #         r.hset(tokenCount,word,tokens)
+    #         #DataStore.tokensCount[word] = DataStore.tokensCount.get(word, 0) + 1
+
+    dictCounter = dict()
+    dictTEMP = dict()
+
+    if not r.hexists(TOKEN_COUNT_NAME, TOKEN_COUNT_KEY):
+        r.hset(TOKEN_COUNT_NAME, TOKEN_COUNT_KEY, json.dumps(dictCounter).encode('utf-8'))
+        dictCounter = r.hgetall(TOKEN_COUNT_NAME)
+    else:
+        dictCounter = r.hgetall(TOKEN_COUNT_NAME)
+
+    dictTEMP = dict(json.loads(dictCounter[TOKEN_COUNT_KEY]))
+
+    boolOnly = False
+    if len(dictTEMP) > 0:
+        boolOnly = True
+        dictTEMP = dict(json.loads(dictTEMP[TOKEN_COUNT_KEY]))
+
     for word in listTemp:
-        tokens = 0
-        if (len(word) > 0):
-            tokens+=1
-        if r.hexists(tokenCount,word):
-            r.hset(tokenCount,word,tokens)
-            #DataStore.tokensCount[word] = DataStore.tokensCount.get(word, 0) + 1
+        if not word in dictTEMP:
+            dictTEMP[word] = 1
+        else:
+            dictTEMP[word] += 1
+
+    dictCounter[TOKEN_COUNT_KEY] = json.dumps(dictTEMP)
+
+    # save back into redis
+    r.hset(TOKEN_COUNT_NAME, TOKEN_COUNT_KEY, json.dumps(dictCounter))
+
 
     if (len(listTemp) == 0):
         r.sadd(blackList,url)

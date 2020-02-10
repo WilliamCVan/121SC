@@ -195,19 +195,19 @@ def removeFragment(str):
 #     normalizedUrl = normalize(url)
 #     DataStore.hashTable[get_urlhash(normalizedUrl)] = url
 
-#does the url contain duplicate paths
-def multipleDir(str):
-    dict={}
-    url = str.split('/')
-    for i in url:
-        if i in dict:
-            dict[i] +=1
-            r.sadd(blackList,str)
-            #DataStore.blackList.add(str)
-            return True
-        else:
-            dict[i] = 1
-    return False
+# #does the url contain duplicate paths
+# def multipleDir(str):
+#     dict={}
+#     url = str.split('/')
+#     for i in url:
+#         if i in dict:
+#             dict[i] +=1
+#             r.sadd(blackList,str)
+#             #DataStore.blackList.add(str)
+#             return True
+#         else:
+#             dict[i] = 1
+#     return False
 
 def ifConsideredSpam(str):
     try:
@@ -242,8 +242,6 @@ def isValid(str):
     # #if str in DataStore.urlSeenBefore:# ADDED CHECK AS OF 2/9 2AM
     #     return False
     if not is_validDEFAULT(str):
-        return False
-    if multipleDir(str):
         return False
     if ifConsideredSpam(str):
         return False
@@ -391,6 +389,7 @@ def reportQuestion4():
 
 
 def ifRepeatPath(input):
+    origUrl = input
     path = urlparse(input).path.strip()
 
     arrsplit = path.split("/")
@@ -411,6 +410,7 @@ def ifRepeatPath(input):
 
         for second in arrsplit:
             if (second == strcurrent):
+                r.sadd(blackList, origUrl)
                 return True
     return False
 

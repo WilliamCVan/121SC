@@ -96,7 +96,7 @@ def getSubDomain(url):
     ext = tldextract.extract(str(url))
     domainUrl = ''
     if ext.subdomain == '':  # Returns url with subdomain attached.
-        return '.'.join([domainUrl, ext.suffix])
+        return '.'.join([ext.domain, ext.suffix])
     domainUrl = '.'.join(ext[:2])
     domainUrl = '.'.join([domainUrl, ext.suffix])
 
@@ -164,10 +164,10 @@ def tokenize(url, rawText):
 #### ADDED IF STATEMENTS TO CHECK FOR CALENDAR
 #if url has been blacklisted before
 def isBlackListed(str):
-    if r.sismember(blackList,str):
-    #if str in DataStore.blackList:
-        return True
-    elif 'https://today.uci.edu/department/information_computer_sciences/calendar' in str:
+    # if r.sismember(blackList,str):
+    # #if str in DataStore.blackList:
+    #     return True
+    if 'https://today.uci.edu/department/information_computer_sciences/calendar' in str:
         return True
     elif 'https://today.uci.edu/calendar' in str:
         return True
@@ -186,7 +186,7 @@ def extractURL(str):
         return ""
 
 def removeFragment(str):
-    str = str.split('?')[0]
+    str = str.split('#')[0]
     return str
 
 
@@ -222,8 +222,7 @@ def ifConsideredSpam(str):
 def ifInUCIDomain(str):
     try:
         str = str.split('?')[0]
-        str = getDomain(str)
-        if '.uci.edu'in str:
+        if 'uci.edu'in str:
             return True
         return False
     except:
@@ -238,9 +237,10 @@ def isValid(str):
     #if  r.sismember(blackList, str):
     #if str in DataStore.blackList:#r.sismember(urlSet,str):
         #return False
-    if r.sismember(visitedURL, str):
-    #if str in DataStore.urlSeenBefore:# ADDED CHECK AS OF 2/9 2AM
-        return False
+
+    # if r.sismember(visitedURL, str):
+    # #if str in DataStore.urlSeenBefore:# ADDED CHECK AS OF 2/9 2AM
+    #     return False
     if not is_validDEFAULT(str):
         return False
     if multipleDir(str):
@@ -396,3 +396,32 @@ def reportQuestion4():
     for url in  subdomainPageSet:
         subdomain = getSubDomain(url)
         subdomainDict[subdomain] += 1
+
+
+# def ifrepeats():
+#     str = "/grad/student-profiles/grad/graduate-student-profile-christina-rall/"
+#     arrsplit = str.split("/");
+#     iCount = 0
+#     strcurrent = ""
+#     loopiter = 0
+#
+#     for itoken in arrsplit:
+#         if loopiter == 0:
+#             strcurrent = arrsplit[0]
+#             continue
+#
+#         while len(arrsplit) > 0:
+#             if len(itoken.strip()) == 0:
+#                 continue
+#
+#             if (strcurrent == itoken):
+#                 return True
+#
+#         if len(arrsplit) > 0:
+#             arrsplit = arrsplit[1:]
+#         loopiter = loopiter + 1
+#
+# abc = ifrepeats()
+# print(abc)
+
+

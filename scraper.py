@@ -24,13 +24,23 @@ repeatedUrl = ['url',0]#If we visit the same url 3 times in a row, add it to bla
 
 def scraper(url, resp):
     global storeSeeds
-    if storeSeeds == 0:  # Store seed robot.txts only once.
+    if storeSeeds == 0:#Store seed robot.txts only once.
         tutils.robotsTxtParseSeeds()
         storeSeeds += 1
-
     links = extract_next_links(url, resp)
-    if (links != None):
-        return [link for link in links if tutils.isValid(link)]  # automatically adds to frontier
+    if(links != None):
+        validLinks = []
+        for link in links:
+            if tutils.isValid(link):
+                #DataStore.urlSeenBefore.add(link)# ADDED AS OF 2/9 2AM
+                r.sadd(visitedURL,link)
+                str=tutils.removeFragment(link)
+                r.sadd(uniqueUrl,str)
+                validLinks.append(link)
+                tutils.robotsTxtParse(url)
+            else:
+                r.sadd(blackList, url)
+        return validLinks#[link for link in links if is_valid(link)]   #automatically adds to frontier
     else:
         return list()
 
@@ -69,6 +79,7 @@ def extract_next_links(url, resp):
 
     if tutils.isValid(url):
         r.sadd(visitedURL,url)
+        r.sadd(uniqueUrl, url)
 
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
 

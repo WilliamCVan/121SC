@@ -7,6 +7,7 @@ from utils import normalize, get_urlhash
 import redis
 import tldextract
 import json
+import utils.reportUtil as report
 
 r = redis.Redis(host="localhost",port=6379,db=0)
 
@@ -405,8 +406,17 @@ def reportQuestion3():
     diction = dict(json.loads(dictionaryPython[TOKEN_COUNT_KEY]))[TOKEN_COUNT_KEY]
     diction = dict(json.loads(diction))
 
+    iLoop = 0
     for w in sorted(diction, key=diction.get, reverse=True):
+        if (w in report.stopWords):
+            continue
+
         print(w, diction[w])
+
+        iLoop = iLoop + 1
+
+        if iLoop == 50:
+            break
 
 
 '''

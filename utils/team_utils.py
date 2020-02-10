@@ -68,7 +68,6 @@ def robotsTxtParse(url):
         #r.hset(robotsCheck, subdomain, robot)
         DataStore.robotsCheck[subdomain] = robot
 
-
 def robotsTxtParseSeeds():
     # Stores the robot.txt of the seed urls in DataStore.RobotChecks
     seedUrls = ['https://today.uci.edu/department/information_computer_sciences/',
@@ -84,6 +83,13 @@ def robotsTxtParseSeeds():
         robot.set_url(robotTxtUrl)
         robot.read()
         DataStore.robotsCheck[domain] = robot
+
+def robotsAllowsSite(subdomain, url):
+    if subdomain in DataStore.robotsCheck.keys():
+        # if r.hexists(robotsCheck,subdomain):
+        # robot = r.hget(robotsCheck,subdomain).decode('utf-8')
+        robot = DataStore.robotsCheck[subdomain]
+        return robot.can_fetch("*", url)
 
 ### CHANGED TO ADD SUFFIX TO DOMAIN
 def getDomain(url):
@@ -138,9 +144,7 @@ def incrementSubDomain(strDomain):
 
 
 def tokenize(url, rawText):
-
     listTemp = re.split(r'[^a-z0-9]+', rawText.lower())
-
 
     #if r.hget(mostTokensUrl, ):
     if (DataStore.mostTokensUrl[1] < len(listTemp)):
@@ -152,14 +156,6 @@ def tokenize(url, rawText):
 
 
     ##### STORE word counts in dictionary inside of redis #####
-    # for word in listTemp:
-    #     tokens = 0
-    #     if (len(word) > 0):
-    #         tokens+=1
-    #     if r.hexists(tokenCount,word):
-    #         r.hset(tokenCount,word,tokens)
-    #         #DataStore.tokensCount[word] = DataStore.tokensCount.get(word, 0) + 1
-
     dictCounter = dict()
     dictTEMP = dict()
 
@@ -201,16 +197,16 @@ def isBlackListed(str):
         return True
     return False
 
-#supposed to split if two urls combined
-# https://canvas.eee.uci.edu/courses/23516/files/folder/lectures?preview-8330088 returns empty when run on
-def extractURL(str):
-    try:
-        url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', str)
-        if ',' in url[0]:
-            url= url[0].split(',')
-        return url
-    except:
-        return ""
+# #supposed to split if two urls combined
+# # https://canvas.eee.uci.edu/courses/23516/files/folder/lectures?preview-8330088 returns empty when run on
+# def extractURL(str):
+#     try:
+#         url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', str)
+#         if ',' in url[0]:
+#             url= url[0].split(',')
+#         return url
+#     except:
+#         return ""
 
 def removeFragment(str):
     str = str.split('#')[0]
@@ -221,20 +217,6 @@ def removeFragment(str):
 #     # 2/6/2020 Function takes in a url and finds the hash for it. Adds the hash and url into a dic
 #     normalizedUrl = normalize(url)
 #     DataStore.hashTable[get_urlhash(normalizedUrl)] = url
-
-# #does the url contain duplicate paths
-# def multipleDir(str):
-#     dict={}
-#     url = str.split('/')
-#     for i in url:
-#         if i in dict:
-#             dict[i] +=1
-#             r.sadd(blackList,str)
-#             #DataStore.blackList.add(str)
-#             return True
-#         else:
-#             dict[i] = 1
-#     return False
 
 def ifConsideredSpam(str):
     try:
@@ -350,20 +332,13 @@ def badUrl(str):
         return True
     if 'https://today.uci.edu/calendar' in str:
         return True
+    if 'https://www.ics.uci.edu/~eppstein/pix/chron.html' in str:
+        return True
     if ".htm" is str:
         return True
     if "signup" in str:
         return True
     return False
-
-
-def robotsAllowsSite(subdomain, url):
-    if subdomain in DataStore.robotsCheck.keys():
-        # if r.hexists(robotsCheck,subdomain):
-        # robot = r.hget(robotsCheck,subdomain).decode('utf-8')
-        robot = DataStore.robotsCheck[subdomain]
-        return robot.can_fetch("*", url)
-
 
 def ifRepeatPath(input):
     origUrl = input

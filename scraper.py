@@ -65,7 +65,7 @@ def extract_next_links(url, resp):
         return  #maybe add to blacklist instead of returning
 
     if (resp.raw_response.status_code < 199 and resp.raw_response.status_code < 400):
-        if (int(resp.raw_response.headers._store["content-length"][1]) > 2000000): #2MB limit
+        if (int(resp.raw_response.headers._store["content-length"][1]) > 100000): #100KB limit
             r.sadd(blackList,url)
             return
         elif (int(resp.raw_response.headers._store["content-length"][1]) < 500): #500 bytes
@@ -73,7 +73,7 @@ def extract_next_links(url, resp):
             return
 
     if (resp.raw_response.status_code < 199 and resp.raw_response.status_code < 400):
-        if "text" not in (resp.raw_response.headers._store["content-type"]) or "application/json" not in (resp.raw_response.headers._store["content-type"]):
+        if "text" not in (resp.raw_response.headers._store["content-type"]):
             r.sadd(blackList, url)
             return
 
@@ -107,6 +107,7 @@ def extract_next_links(url, resp):
         # REGEX function HERE to sanitize url and/or urljoin path to hostname
         if(childURL != None):
             url = tutils.returnFullURL(url, childURL)
+            url = tutils.removeFragment(url)
 
         if not tutils.isValid(url): #skip invalid urls
             r.sadd(blackList, url)

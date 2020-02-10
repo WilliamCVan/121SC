@@ -19,3 +19,31 @@ def scraper(url, resp):
         return validLinks#[link for link in links if is_valid(link)]   #automatically adds to frontier
     else:
         return list()
+
+
+
+
+        
+    for link in soup.find_all('a'):
+        # get absolute urls here before adding to listLInks()
+        childURL = link.get('href')
+
+        newlink = ""
+        # REGEX function HERE to sanitize url and/or urljoin path to hostname
+        if(childURL != None):
+            newlink = tutils.returnFullURL(url, childURL)
+
+        if not tutils.isValid(newlink): #skip invalid urls
+            r.sadd(blackList, newlink)
+            continue
+
+        if(len(newlink) > 0):
+            newlink = tutils.removeFragment(newlink)
+
+        ### CHECK IF WE'VE already seen url and skip it ###
+        boolSeenBefore = r.sismember(visitedURL, newlink)
+        if(boolSeenBefore):
+            continue
+
+        if(len(url) > 0):
+            listLinks.append(newlink)

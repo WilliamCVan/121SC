@@ -107,10 +107,16 @@ def extract_next_links(url, resp):
         # REGEX function HERE to sanitize url and/or urljoin path to hostname
         if(childURL != None):
             url = tutils.returnFullURL(url, childURL)
-            url = tutils.removeFragment(url)
 
         if not tutils.isValid(url): #skip invalid urls
             r.sadd(blackList, url)
+            continue
+
+        url = tutils.removeFragment(url)
+
+        ### CHECK IF WE'VE already seen url and skip it ###
+        boolSeenBefore = r.sismember(visitedURL, url)
+        if(boolSeenBefore):
             continue
 
         if(len(url) > 0):

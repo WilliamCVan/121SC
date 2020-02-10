@@ -350,6 +350,10 @@ def badUrl(str):
         return True
     if 'https://today.uci.edu/calendar' in str:
         return True
+    if ".htm" is str:
+        return True
+    if "signup" in str:
+        return True
     return False
 
 

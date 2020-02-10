@@ -8,7 +8,8 @@ from urllib.robotparser import RobotFileParser
 import redis
 #import Levenshtein
 import requests
-r = redis.Redis(host="localhost",port=6379,db=0)
+
+r = redis.Redis(host="localhost",port=6379,db=0, decode_responses=True)
 # Not sure if we should have this. From a yt vid I watched
 # https://www.youtube.com/watch?v=dlI-xpQxcuE
 

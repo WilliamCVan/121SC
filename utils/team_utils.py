@@ -9,7 +9,7 @@ import tldextract
 import json
 import utils.reportUtil as report
 
-r = redis.Redis(host="localhost",port=6379,db=0)
+r = redis.Redis(host="localhost",port=6379,db=0, decode_responses=True)
 
 # Not sure if we should have this. From a yt vid I watched
 # https://www.youtube.com/watch?v=dlI-xpQxcuE
@@ -126,7 +126,7 @@ def incrementSubDomain(strDomain):
     result = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)   #remove slash at end
 
     if r.hexists(setDomainCount,result):
-        val = r.hget(setDomainCount,result).decode('utf-8')
+        val = r.hget(setDomainCount,result)
         val = int(val)
         val += 1
         r.hset(setDomainCount,result,val)

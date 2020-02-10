@@ -47,6 +47,9 @@ def scraper(url, resp):
 def extract_next_links(url, resp):
     listLinks = list()
 
+    # removes any fragments
+    url = tutils.removeFragment(url)
+
     # if Levenshtein.distance(url, tutils.four0four) <= 10:
     #     return
     if(resp.raw_response == None):  #600+ statuses return a None object for resp.raw_response
@@ -73,9 +76,6 @@ def extract_next_links(url, resp):
         if "text" not in (resp.raw_response.headers._store["content-type"]) or "application/json" not in (resp.raw_response.headers._store["content-type"]):
             r.sadd(blackList, url)
             return
-
-    # removes any fragments
-    url = tutils.removeFragment(url)
 
     if tutils.isValid(url):
         r.sadd(visitedURL,url)
@@ -109,6 +109,7 @@ def extract_next_links(url, resp):
             url = tutils.returnFullURL(url, childURL)
 
         if not tutils.isValid(url): #skip invalid urls
+            r.sadd(blackList, url)
             continue
 
         if(len(url) > 0):

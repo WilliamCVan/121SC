@@ -144,7 +144,7 @@ def incrementSubDomain(strDomain):
 
 
 def tokenize(url, rawText):
-    listTemp = re.split(r'[^a-z0-9]+', rawText.lower())
+    listTemp = re.split(r"[^a-z0-9']+", rawText.lower())
 
     #if r.hget(mostTokensUrl, ):
     if (DataStore.mostTokensUrl[1] < len(listTemp)):
@@ -351,6 +351,8 @@ def badUrl(str):
     if 'twitter' in str:
         return True
     if '//swiki.ics'in str:
+        return True
+    if 'eppstein/pix' in str:
         return True
 
     return False

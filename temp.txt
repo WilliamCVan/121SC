@@ -47,3 +47,12 @@ def scraper(url, resp):
 
         if(len(url) > 0):
             listLinks.append(newlink)
+
+
+DEBUG = False
+
+# redis keys
+if DEBUG == True
+BLACKLIST = "test_blacklist"
+else
+BLACKLIST = "blacklist"

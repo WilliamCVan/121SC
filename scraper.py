@@ -104,23 +104,25 @@ def extract_next_links(url, resp):
         # get absolute urls here before adding to listLInks()
         childURL = link.get('href')
 
+        newlink = ""
         # REGEX function HERE to sanitize url and/or urljoin path to hostname
         if(childURL != None):
-            url = tutils.returnFullURL(url, childURL)
+            newlink = tutils.returnFullURL(url, childURL)
 
-        if not tutils.isValid(url): #skip invalid urls
-            r.sadd(blackList, url)
+        if not tutils.isValid(newlink): #skip invalid urls
+            r.sadd(blackList, newlink)
             continue
 
-        url = tutils.removeFragment(url)
+        if(len(newlink) > 0):
+            newlink = tutils.removeFragment(newlink)
 
         ### CHECK IF WE'VE already seen url and skip it ###
-        boolSeenBefore = r.sismember(visitedURL, url)
+        boolSeenBefore = r.sismember(visitedURL, newlink)
         if(boolSeenBefore):
             continue
 
         if(len(url) > 0):
-            listLinks.append(url)
+            listLinks.append(newlink)
 
     return listLinks    #returns the urls to the Frontier object
 

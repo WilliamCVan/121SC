@@ -229,16 +229,16 @@ def ifConsideredSpam(str):
     return False
 
 def ifInUCIDomain(str):
+    if 'today.uci.edu/department/information_computer_sciences' in str:
+        return True
     str = getSubDomain(str)
-    if '.ics.uci.edu/'in str:
+    if '.ics.uci.edu'in str or '/ics.uci.edu' in str:
         return True
-    if '.cs.uci.edu/' in str:
+    if '.cs.uci.edu' in str or '/cs.uci.edu' in str:
         return True
-    if '.informatics.uci.edu/' in str:
+    if '.informatics.uci.edu' in str or '/informatics.uci.edu' in str:
         return True
-    if '.stat.uci.edu/' in str:
-        return True
-    if 'today.uci.edu/department/information_computer_sciences/' in str:
+    if '.stat.uci.edu' in str or '/stat.uci.edu' in str:
         return True
     return False
 
@@ -278,12 +278,10 @@ def is_validDEFAULT(url):
 
 #is url valid
 def isValid(str):
-    str = removeFragment(str)
 
     if isBlackListed(str):
         return False
     if r.sismember(visitedURL, str):
-    #if str in DataStore.urlSeenBefore:# ADDED CHECK AS OF 2/9 2AM
         return False
     if not is_validDEFAULT(str):
         return False
@@ -300,10 +298,6 @@ def isValid(str):
 def badUrl(str):
     if "search" in str:
         return True
-    if "sid" in str:
-        return True
-    #if "&" in str:
-     #   return True
     if "calendar" in str:
         return True
     if "graphics" in str:
@@ -313,8 +307,6 @@ def badUrl(str):
     if "ppt" in str:
         return True
     if "pdf" in str:
-        return True
-    if "year" in str:
         return True
     if len(str)>150:
         return True
@@ -330,14 +322,37 @@ def badUrl(str):
         return True
     if 'https://today.uci.edu/department/information_computer_sciences/calendar' in str:
         return True
-    if 'https://today.uci.edu/calendar' in str:
-        return True
     if 'https://www.ics.uci.edu/~eppstein/pix/chron.html' in str:
         return True
-    if ".htm" is str:
+    if ".htm" in str:
+        return True
+    if '.zip' in str:
+        return True
+    if "gallery" in str:
         return True
     if "signup" in str:
         return True
+    if "/event/" in str:
+        return True
+    if "events/" in str:
+        return True
+    if "wics-" in str:
+        return True
+    if "share" in str:
+        return True
+    if "slides" in str:
+        return True
+    if ".txt" in str:
+        return True
+    if 'flamingo.' in str:
+        return True
+    if 'facebook'in str:
+        return True
+    if 'twitter' in str:
+        return True
+    if '//swiki.ics'in str:
+        return True
+
     return False
 
 def ifRepeatPath(input):

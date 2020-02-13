@@ -1,6 +1,6 @@
 from crawler.datastore import DataStore
 from urllib.parse import urlparse
-from urllib.robotparser import RobotFileParser
+from utils.cacheRobotParser import CacheRobotFileParser
 import re
 from urllib.parse import urljoin
 from utils import normalize, get_urlhash
@@ -39,38 +39,36 @@ May remove adding domain to robotchecks part.
 Thought process: robots.txt is found in the root page which is usually a domain or subdomain. In order to check if a url is allowed or not, 
 just find its domain/subdomain and look at the disallowed section.
 '''
-def robotsTxtParse(url):
+def robotsTxtParse(url, config, logger):
     # Finds the robot.txt of a domain and subdomain(if one exists) and
     # Stores it in DataStore.RobotChecks
     scheme = urlparse(url).scheme #scheme needed to read robots.txt
 
     domain = getDomain(url)
     #val=r.hget(robotsCheck,"bhh").decode('utf-8')
-    if domain != '' and domain not in DataStore.robotsCheck:
-    #if domain != '' and not r.hexists(robotsCheck, domain):
+
+    if domain != '' and not r.hexists(robotsCheck, domain):
+    #if domain != '' and domain not in DataStore.robotsCheck:
         robotTxtUrl = f"{scheme}://{domain}/robots.txt"  # '://'.join([scheme, subdomain])#add scheme to subdomain
-        robot = RobotFileParser()
+        robot = CacheRobotFileParser(config,logger)
         robot.set_url(robotTxtUrl)
         robot.read()
-        #r.hset(robotsCheck, domain, robot)
-        DataStore.robotsCheck[domain] = robot
-
-    #if domain != '' and not r.hexists(robotsCheck,domain):
-        #r.hset(robotsCheck,domain,robot)
+        #DataStore.robotsCheck[domain] = robot
+        r.hset(robotsCheck,domain,robot)
 
     subdomain = getSubDomain(url)
     #if subdomain != '' and subdomain not in DataStore.robotsCheck:
     if subdomain != '' and not r.hexists(robotsCheck,subdomain):
         robotTxtUrl = f"{scheme}://{subdomain}/robots.txt" #'://'.join([scheme, subdomain])#add scheme to subdomain
-        robot = RobotFileParser()
+        robot = CacheRobotFileParser(config,logger)
         robot.set_url(robotTxtUrl)
         robot.read()
-        #r.hset(robotsCheck, subdomain, robot)
         DataStore.robotsCheck[subdomain] = robot
+        r.hmset(robotsCheck,subdomain,robot)
 
-def robotsTxtParseSeeds():
+def robotsTxtParseSeeds(config, logger):
     # Stores the robot.txt of the seed urls in DataStore.RobotChecks
-    seedUrls = ['https://today.uci.edu/department/information_computer_sciences/',
+    seedUrls = [
     'https://www.ics.uci.edu',
     'https://www.cs.uci.edu',
     'https://www.informatics.uci.edu',
@@ -79,17 +77,11 @@ def robotsTxtParseSeeds():
         scheme = urlparse(seedUrl).scheme
         domain = getSubDomain(seedUrl)
         robotTxtUrl = f"{scheme}://{domain}/robots.txt"  # '://'.join([scheme, subdomain])#add scheme to subdomain
-        robot = RobotFileParser()
+        robot = CacheRobotFileParser(config, logger)
         robot.set_url(robotTxtUrl)
         robot.read()
-        DataStore.robotsCheck[domain] = robot
-
-def robotsAllowsSite(subdomain, url):
-    if subdomain in DataStore.robotsCheck.keys():
-        # if r.hexists(robotsCheck,subdomain):
-        # robot = r.hget(robotsCheck,subdomain).decode('utf-8')
-        robot = DataStore.robotsCheck[subdomain]
-        return robot.can_fetch("*", url)
+        r.hmset(robotsCheck, domain, robot)
+        #DataStore.robotsCheck[domain] = robot
 
 ### CHANGED TO ADD SUFFIX TO DOMAIN
 def getDomain(url):

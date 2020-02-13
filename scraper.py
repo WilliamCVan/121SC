@@ -22,7 +22,7 @@ robotsCheck ="robotsDict"
 storeSeeds = 0
 repeatedUrl = ['url',0]#If we visit the same url 3 times in a row, add it to blacklist and skip.
 
-def scraper(url, resp):
+def scraper(url, resp, config, logger):
     global storeSeeds
     if storeSeeds == 0:#Store seed robot.txts only once.
         tutils.robotsTxtParseSeeds()
@@ -37,7 +37,7 @@ def scraper(url, resp):
                 str=tutils.removeFragment(link)
                 r.sadd(uniqueUrl,str)
                 validLinks.append(link)
-                tutils.robotsTxtParse(url)
+                tutils.robotsTxtParse(url, config, logger)
             else:
                 r.sadd(blackList, url)
         return validLinks#[link for link in links if is_valid(link)]   #automatically adds to frontier

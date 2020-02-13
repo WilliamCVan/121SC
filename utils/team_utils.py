@@ -128,8 +128,9 @@ def returnFullURL(parent_url, strInput):
 
 def incrementSubDomain(strDomain):
     parsed_uri = urlparse(strDomain)
-    # MAYBE remove the uri.scheme, since it doesn't matter the protocol #
-    result = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)   #remove slash at end
+    result = '{uri.netloc}'.format(uri=parsed_uri)   #remove slash at end
+    result = getSubDomain(result)
+    result = result.replace("www.", "")
 
     if r.hexists(setDomainCount,result):
         val = r.hget(setDomainCount,result)
@@ -413,16 +414,22 @@ def reportQuestion3():
     diction = dict(json.loads(diction))
 
     iLoop = 0
+    file = open('tokensMostCount.txt', 'w+')
+
     for w in sorted(diction, key=diction.get, reverse=True):
         if (w in report.stopWords):
             continue
 
-        print(w, diction[w])
+        if len(w) > 1:
+            # print(w, diction[w])
+            file.write(str(w) + " " + str(diction[w]) + "\n")
 
         iLoop = iLoop + 1
 
         if iLoop == 50:
             break
+
+    file.close()
 
 
 '''
@@ -444,42 +451,13 @@ Iterate through the filtered pages, and lookup the subdomain they of ics.uci.edu
 Increment count by 1.
 '''
 def reportQuestion4():
-    # subdomainCount = 0
-    #
-    # subdomainDict = dict()
-    # subdomainPageSet = set()
-    # uniquePages = 0
-    #
-    # # Find all the subdomains under ics.uci.edu
-    # for url in DataStore.urlSeenBefore:
-    #     subdomain = getSubDomain(url)
-    #     if 'ics.uci.edu' in subdomain:# Find subdomain of ics.uci.edu
-    #         if subdomain not in subdomainDict.keys():# Making sure url was not a dif page of a seen subdomain
-    #             subdomainCount += 1
-    #             subdomainDict[subdomain] = 0
-    #         parsedUrl = removeFragment(url)
-    #         subdomainPageSet.add(parsedUrl)
-    #
-    # # Iterates through filtered pages. Find the subdomain each page belongs to and increment the unique page count for it.
-    # for url in  subdomainPageSet:
-    #     subdomain = getSubDomain(url)
-    #     subdomainDict[subdomain] += 1
+    redisDict = r.hgetall(setDomainCount)
 
-    # redis implementation of reading out subdomains and printing their counts
-    dictionaryCount = dict()
-
-    for url in r.smembers(setDomainCount):
-        subDomain = getSubDomain(url)
-        if not subDomain in dictionaryCount:
-            dictionaryCount[subDomain] = 1
-        else:
-            dictionaryCount[subDomain] += 1
-
-    sortedDict = sorted(dictionaryCount.items(), key=lambda x: x[1], reverse=True)
-    for item in sortedDict:
-        print(item[0], item[1])
+    file = open('subdomainCount.txt', 'w+')
+    for i in sorted(redisDict):
+        file.write(str(i) + " " + str(redisDict[i]) + "\n")
+        #print((i, redisDict[i]))
 
 
-# abc = "https://outlook.office365.com/owa/calendar/ICS_ICS2-110@exchange.uci.edu/Calendar/calendar.html"
-# # print(getDomain(abc))
-# # print(getSubDomain(abc))
+# if __name__ == "__main__":
+#     reportQuestion4()

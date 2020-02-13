@@ -420,9 +420,13 @@ def reportQuestion3():
         if (w in report.stopWords):
             continue
 
+        iLoopPrint = iLoop + 1
+
         if len(w) > 1:
             # print(w, diction[w])
-            file.write(str(w) + " " + str(diction[w]) + "\n")
+            file.write(str(iLoopPrint) + ". " + str(w) + " " + str(diction[w]) + "\n")
+        else:
+            continue
 
         iLoop = iLoop + 1
 
@@ -452,12 +456,15 @@ Increment count by 1.
 '''
 def reportQuestion4():
     redisDict = r.hgetall(setDomainCount)
+    iLoop = 1
 
     file = open('subdomainCount.txt', 'w+')
     for i in sorted(redisDict):
-        file.write(str(i) + " " + str(redisDict[i]) + "\n")
+        file.write(str(iLoop) + ". " + str(i) + " " + str(redisDict[i]) + "\n")
         #print((i, redisDict[i]))
+        iLoop = iLoop + 1
 
 
-# if __name__ == "__main__":
-#     reportQuestion4()
+#if __name__ == "__main__":
+    #reportQuestion3()
+    #reportQuestion4()

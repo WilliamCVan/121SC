@@ -12,20 +12,14 @@ from utils.cacheRobotParser import CacheRobotFileParser
 
 r = redis.Redis(host="localhost",port=6379,db=0, decode_responses=True)
 
-# Not sure if we should have this. From a yt vid I watched
-# https://www.youtube.com/watch?v=dlI-xpQxcuE
-
-#r.set('language', 'Python', px = 10000)
-
-
-robotsCheck ="robotsDict"
+#robotsCheck ="robotsDict"
 mostTokensUrl="mostTokens"
 setDomainCount = "setDomainCount"
 TOKEN_COUNT_NAME = "tokenCount"
 TOKEN_COUNT_KEY = "dictKey"
 blackList = "blackListed"
 visitedURL = "urls"
-#ask artur for explination these are actually pretty useful
+#ask artur for explaination these are actually pretty useful
 four0four = ""
 
 
@@ -47,14 +41,14 @@ def robotsTxtParse(url, config, logger):
 
     domain = getDomain(url)
     #val=r.hget(robotsCheck,"bhh").decode('utf-8')
-    #if domain != '' and domain not in DataStore.robotsCheck:
-    if domain != '' and not r.hexists(robotsCheck, domain):
+    if domain != '' and domain not in DataStore.robotsCheck:
+    #if domain != '' and domain not in r.hexists(robotsCheck, domain):
         robotTxtUrl = f"{scheme}://{domain}/robots.txt"
         robot = RobotFileParser(config, logger)
         robot.set_url(robotTxtUrl)
         robot.read()
-        r.hset(robotsCheck, domain, robot)
-        #DataStore.robotsCheck[domain] = robot
+        #r.hset(robotsCheck, domain, robot)
+        DataStore.robotsCheck[domain] = robot
 
     subdomain = getSubDomain(url)
     if subdomain != '' and subdomain not in DataStore.robotsCheck:
@@ -63,8 +57,8 @@ def robotsTxtParse(url, config, logger):
         robot = RobotFileParser(config, logger)
         robot.set_url(robotTxtUrl)
         robot.read()
-        r.hset(robotsCheck, subdomain, robot)
-        #DataStore.robotsCheck[subdomain] = robot
+        #r.hset(robotsCheck, subdomain, robot)
+        DataStore.robotsCheck[subdomain] = robot
 
 def robotsTxtParseSeeds(config, logger):
     # Stores the robot.txt of the seed urls in DataStore.RobotChecks
@@ -80,14 +74,14 @@ def robotsTxtParseSeeds(config, logger):
         robot = CacheRobotFileParser(config, logger)
         robot.set_url(robotTxtUrl)
         robot.read()
-        #DataStore.robotsCheck[domain] = robot
-        r.hset(robotsCheck, domain, robot)
+        DataStore.robotsCheck[domain] = robot
+        #r.hset(robotsCheck, domain, robot)
 
 def robotsAllowsSite(subdomain, url):
-    #if subdomain in DataStore.robotsCheck.keys():
-    if r.hexists(robotsCheck,subdomain):
-        robot = r.hget(robotsCheck,subdomain)#.decode('utf-8')
-        #robot = DataStore.robotsCheck[subdomain]
+    if subdomain in DataStore.robotsCheck.keys():
+    #if r.hexists(robotsCheck,subdomain):
+        #robot = r.hget(robotsCheck,subdomain)#.decode('utf-8')
+        robot = DataStore.robotsCheck[subdomain]
         return robot.can_fetch("*", url)
 
 ### CHANGED TO ADD SUFFIX TO DOMAIN

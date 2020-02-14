@@ -39,6 +39,11 @@ class CacheRobotFileParser:
     def read(self):
         """Reads the robots.txt URL and feeds it to the parser."""
 
+        if "https://today.uci.edu/" in self.url:
+            self.resp_content = "# See http://www.robotstxt.org/wc/norobots.html for documentation on how to use the robots.txt file\n\n\nUser-agent: *\nDisallow: /*/calendar/*?*types*\nDisallow: /*/browse*?*types*\nDisallow: /*/calendar/200*\n# Disallow: /*/calendar/2013*\n# Disallow: /*/calendar/2014*\nDisallow: /*/calendar/2015*\nDisallow: /*/calendar/2016*\nDisallow: /*/calendar/2017*\nDisallow: /*/calendar/2018*\nDisallow: /*/calendar/2019*\nDisallow: /*/calendar/202*\nDisallow: /*/calendar/week\nDisallow: /calendar/month\nDisallow: /calendar/week\nDisallow: /event/confirm\nDisallow: /event/unconfirm\nDisallow: /event/get_attendees\nDisallow: /event/watch_event\nDisallow: /event/create\nDisallow: /search\nDisallow: /photo/\nDisallow: /*/search\nDisallow: /*?utm\nDisallow: /signup?*\nDisallow: /auth/\nAllow: /\nAllow: /search/events.ics\nAllow: /search/events.xml\nAllow: /*/search/events.ics\nAllow: /*/search/events.xml\nAllow: /calendar/ics\nAllow: /calendar/xml\nAllow: /*/calendar/ics\nAllow: /*/calendar/xml\nAllow: /auth/login\nAllow: /auth/forgot"
+            self.parse(self.resp_content)
+            return
+
         self.resp = download(self.url, self.config, self.logger)
 
         if self.resp.raw_response == None:

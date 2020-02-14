@@ -86,7 +86,7 @@ def robotsTxtParseSeeds(config, logger):
 def robotsAllowsSite(subdomain, url):
     #if subdomain in DataStore.robotsCheck.keys():
     if r.hexists(robotsCheck,subdomain):
-        robot = r.hget(robotsCheck,subdomain).decode('utf-8')
+        robot = r.hget(robotsCheck,subdomain)#.decode('utf-8')
         #robot = DataStore.robotsCheck[subdomain]
         return robot.can_fetch("*", url)
 
@@ -251,8 +251,8 @@ def is_validDEFAULT(url):
             return False
 
         ### COMMENT BACK IN WHEN FINISHED ###
-        # if not robotsAllowsSite(subdomain, url):
-        #     return False
+        if not robotsAllowsSite(subdomain, url):
+            return False
 
         #if url in DataStore.blackList:
         #if r.sismember(visitedURL,url):

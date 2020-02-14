@@ -22,6 +22,7 @@ mostTokensUrl="mostTokens"
 setDomainCount = "setDomainCount"
 TOKEN_COUNT_NAME = "tokenCount"
 TOKEN_COUNT_KEY = "dictKey"
+HASH_SAME = "hashSame"
 blackList = "blackListed"
 visitedURL = "urls"
 #ask artur for explination these are actually pretty useful
@@ -195,6 +196,12 @@ def tokenize(url, rawText):
 def isBlackListed(str):
     if r.sismember(blackList,str):
     #if str in DataStore.blackList:
+        return True
+    return False
+
+### *DO NOT* ADD isSameHash() to isValid() ###
+def isSameHash(str):
+    if r.sismember(HASH_SAME,str):
         return True
     return False
 

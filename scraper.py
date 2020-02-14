@@ -98,6 +98,16 @@ def extract_next_links(url, resp):
 
     # add all tokens found from html response with tags removed
     varTemp = soup.get_text()
+
+
+    # prevent scraping current page if hash is identical to another page
+    if(tutils.isSameHash(varTemp)):
+        return listLinks    #return empty list if identical content
+    else:
+        hashOut = hash(varTemp)
+        r.sadd(tutils.HASH_SAME, hashOut)   #add hash of text output to redis set
+
+
     tutils.tokenize(url, varTemp)
 
     for link in soup.find_all('a'):

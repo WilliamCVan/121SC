@@ -8,16 +8,11 @@ import redis
 import tldextract
 import json
 import utils.reportUtil as report
+from utils.cacheRobotParser import CacheRobotFileParser
 
 r = redis.Redis(host="localhost",port=6379,db=0, decode_responses=True)
 
-# Not sure if we should have this. From a yt vid I watched
-# https://www.youtube.com/watch?v=dlI-xpQxcuE
-
-#r.set('language', 'Python', px = 10000)
-
-
-robotsCheck ="robotsDict"
+#robotsCheck ="robotsDict"
 mostTokensUrl="mostTokens"
 setDomainCount = "setDomainCount"
 TOKEN_COUNT_NAME = "tokenCount"
@@ -25,7 +20,7 @@ TOKEN_COUNT_KEY = "dictKey"
 HASH_SAME = "hashSame"
 blackList = "blackListed"
 visitedURL = "urls"
-#ask artur for explination these are actually pretty useful
+#ask artur for explaination these are actually pretty useful
 four0four = ""
 
 
@@ -40,7 +35,7 @@ May remove adding domain to robotchecks part.
 Thought process: robots.txt is found in the root page which is usually a domain or subdomain. In order to check if a url is allowed or not, 
 just find its domain/subdomain and look at the disallowed section.
 '''
-def robotsTxtParse(url):
+def robotsTxtParse(url, config, logger):
     # Finds the robot.txt of a domain and subdomain(if one exists) and
     # Stores it in DataStore.RobotChecks
     scheme = urlparse(url).scheme #scheme needed to read robots.txt
@@ -48,28 +43,25 @@ def robotsTxtParse(url):
     domain = getDomain(url)
     #val=r.hget(robotsCheck,"bhh").decode('utf-8')
     if domain != '' and domain not in DataStore.robotsCheck:
-    #if domain != '' and not r.hexists(robotsCheck, domain):
-        robotTxtUrl = f"{scheme}://{domain}/robots.txt"  # '://'.join([scheme, subdomain])#add scheme to subdomain
-        robot = RobotFileParser()
+    #if domain != '' and domain not in r.hexists(robotsCheck, domain):
+        robotTxtUrl = f"{scheme}://{domain}/robots.txt"
+        robot = RobotFileParser(config, logger)
         robot.set_url(robotTxtUrl)
         robot.read()
         #r.hset(robotsCheck, domain, robot)
         DataStore.robotsCheck[domain] = robot
 
-    #if domain != '' and not r.hexists(robotsCheck,domain):
-        #r.hset(robotsCheck,domain,robot)
-
     subdomain = getSubDomain(url)
-    #if subdomain != '' and subdomain not in DataStore.robotsCheck:
-    if subdomain != '' and not r.hexists(robotsCheck,subdomain):
-        robotTxtUrl = f"{scheme}://{subdomain}/robots.txt" #'://'.join([scheme, subdomain])#add scheme to subdomain
-        robot = RobotFileParser()
+    if subdomain != '' and subdomain not in DataStore.robotsCheck:
+    #if subdomain != '' and not r.hexists(robotsCheck,subdomain):
+        robotTxtUrl = f"{scheme}://{subdomain}/robots.txt"
+        robot = RobotFileParser(config, logger)
         robot.set_url(robotTxtUrl)
         robot.read()
         #r.hset(robotsCheck, subdomain, robot)
         DataStore.robotsCheck[subdomain] = robot
 
-def robotsTxtParseSeeds():
+def robotsTxtParseSeeds(config, logger):
     # Stores the robot.txt of the seed urls in DataStore.RobotChecks
     seedUrls = ['https://today.uci.edu/department/information_computer_sciences/',
     'https://www.ics.uci.edu',
@@ -79,16 +71,17 @@ def robotsTxtParseSeeds():
     for seedUrl in seedUrls:
         scheme = urlparse(seedUrl).scheme
         domain = getSubDomain(seedUrl)
-        robotTxtUrl = f"{scheme}://{domain}/robots.txt"  # '://'.join([scheme, subdomain])#add scheme to subdomain
-        robot = RobotFileParser()
+        robotTxtUrl = f"{scheme}://{domain}/robots.txt"
+        robot = CacheRobotFileParser(config, logger)
         robot.set_url(robotTxtUrl)
         robot.read()
         DataStore.robotsCheck[domain] = robot
+        #r.hset(robotsCheck, domain, robot)
 
 def robotsAllowsSite(subdomain, url):
     if subdomain in DataStore.robotsCheck.keys():
-        # if r.hexists(robotsCheck,subdomain):
-        # robot = r.hget(robotsCheck,subdomain).decode('utf-8')
+    #if r.hexists(robotsCheck,subdomain):
+        #robot = r.hget(robotsCheck,subdomain)#.decode('utf-8')
         robot = DataStore.robotsCheck[subdomain]
         return robot.can_fetch("*", url)
 
@@ -96,8 +89,8 @@ def robotsAllowsSite(subdomain, url):
 def getDomain(url):
     # Gets the domain or subdomain of a url and returns it.
     ext = tldextract.extract(url)
-    domainUrl = ext.domain
-    domainUrl = '.'.join([domainUrl, ext.suffix])
+    #domainUrl = ext.domain
+    domainUrl = f"{ext.domain}.{ext.suffix}"#'.'.join([domainUrl, ext.suffix])
 
     return domainUrl
 
@@ -106,9 +99,9 @@ def getSubDomain(url):
     ext = tldextract.extract(str(url))
     domainUrl = ''
     if ext.subdomain == '':  # Returns url with subdomain attached.
-        return '.'.join([ext.domain, ext.suffix])
-    domainUrl = '.'.join(ext[:2])
-    domainUrl = '.'.join([domainUrl, ext.suffix])
+        return f"{ext.domain}.{ext.suffix}"#'.'.join([ext.domain, ext.suffix])
+    #domainUrl = '.'.join(ext[:2])
+    domainUrl = f"{ext.subdomain}.{ext.domain}.{ext.suffix}"#'.'.join([domainUrl, ext.suffix])
 
     return domainUrl
 
@@ -259,8 +252,8 @@ def is_validDEFAULT(url):
             return False
 
         ### COMMENT BACK IN WHEN FINISHED ###
-        # if not robotsAllowsSite(subdomain, url):
-        #     return False
+        if not robotsAllowsSite(subdomain, url):
+            return False
 
         #if url in DataStore.blackList:
         #if r.sismember(visitedURL,url):

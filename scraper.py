@@ -28,13 +28,13 @@ def scraper(url, resp, config, logger):
     if storeSeeds == 0:#Store seed robot.txts only once.
         tutils.robotsTxtParseSeeds(config, logger)
         storeSeeds += 1
-    links = extract_next_links(url, resp)
+    links = extract_next_links(url, resp, config, logger)
     if(links != None):
         return links
     else:
         return list()
 
-def extract_next_links(url, resp):
+def extract_next_links(url, resp, config, logger):
     listLinks = list()
 
     # removes any fragments
@@ -124,6 +124,9 @@ def extract_next_links(url, resp):
 
         if(len(url) > 0):
             listLinks.append(newlink)
+
+        if tutils.getSubDomain(newlink) not in DataStore.robotsCheck or tutils.getDomain(newlink) not in DataStore.robotsCheck:
+            tutils.robotsTxtParse(newlink, config, logger)
 
     return listLinks    #returns the urls to the Frontier object
 

@@ -42,7 +42,7 @@ def robotsTxtParse(url, config, logger):
 
     domain = getDomain(url)
     #val=r.hget(robotsCheck,"bhh").decode('utf-8')
-    if domain != '' and domain not in DataStore.robotsCheck:
+    if domain != '' and domain not in DataStore.robotsCheck and domain != 'uci.edu':
     #if domain != '' and domain not in r.hexists(robotsCheck, domain):
         robotTxtUrl = f"{scheme}://{domain}/robots.txt"
         robot = CacheRobotFileParser(config, logger)

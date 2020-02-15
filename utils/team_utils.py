@@ -45,7 +45,7 @@ def robotsTxtParse(url, config, logger):
     if domain != '' and domain not in DataStore.robotsCheck:
     #if domain != '' and domain not in r.hexists(robotsCheck, domain):
         robotTxtUrl = f"{scheme}://{domain}/robots.txt"
-        robot = RobotFileParser(config, logger)
+        robot = CacheRobotFileParser(config, logger)
         robot.set_url(robotTxtUrl)
         robot.read()
         #r.hset(robotsCheck, domain, robot)
@@ -55,7 +55,7 @@ def robotsTxtParse(url, config, logger):
     if subdomain != '' and subdomain not in DataStore.robotsCheck:
     #if subdomain != '' and not r.hexists(robotsCheck,subdomain):
         robotTxtUrl = f"{scheme}://{subdomain}/robots.txt"
-        robot = RobotFileParser(config, logger)
+        robot = CacheRobotFileParser(config, logger)
         robot.set_url(robotTxtUrl)
         robot.read()
         #r.hset(robotsCheck, subdomain, robot)
@@ -84,6 +84,9 @@ def robotsAllowsSite(subdomain, url):
         #robot = r.hget(robotsCheck,subdomain)#.decode('utf-8')
         robot = DataStore.robotsCheck[subdomain]
         return robot.can_fetch("*", url)
+
+    return True #if robots.txt not found, then we can scrape freely
+
 
 ### CHANGED TO ADD SUFFIX TO DOMAIN
 def getDomain(url):

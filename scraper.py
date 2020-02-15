@@ -1,6 +1,6 @@
 import re
 from urllib.parse import urlparse
-from bs4 import BeautifulSoup , Comment
+from bs4 import BeautifulSoup, Comment
 #import crawler.datastore as data
 from crawler.datastore import DataStore
 import utils.team_utils as tutils
@@ -8,6 +8,7 @@ from urllib.robotparser import RobotFileParser
 import redis
 #import Levenshtein
 import requests
+import hashlib
 
 r = redis.Redis(host="localhost",port=6379,db=0, decode_responses=True)
 # Not sure if we should have this. From a yt vid I watched
@@ -29,18 +30,7 @@ def scraper(url, resp, config, logger):
         storeSeeds += 1
     links = extract_next_links(url, resp)
     if(links != None):
-        validLinks = []
-        for link in links:
-            if tutils.isValid(link):
-                #DataStore.urlSeenBefore.add(link)# ADDED AS OF 2/9 2AM
-                r.sadd(visitedURL,link)
-                str=tutils.removeFragment(link)
-                r.sadd(uniqueUrl,str)
-                validLinks.append(link)
-                tutils.robotsTxtParse(url, config, logger)
-            else:
-                r.sadd(blackList, url)
-        return validLinks#[link for link in links if is_valid(link)]   #automatically adds to frontier
+        return links
     else:
         return list()
 
@@ -102,9 +92,10 @@ def extract_next_links(url, resp):
 
     # prevent scraping current page if hash is identical to another page
     if(tutils.isSameHash(varTemp)):
-        return listLinks    #return empty list if identical content
+        r.sadd(blackList, url)
+        return
     else:
-        hashOut = hash(varTemp)
+        hashOut = hashlib.md5(varTemp.encode('utf-8')).hexdigest()
         r.sadd(tutils.HASH_SAME, hashOut)   #add hash of text output to redis set
 
 

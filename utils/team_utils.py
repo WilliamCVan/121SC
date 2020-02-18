@@ -127,7 +127,7 @@ def incrementSubDomain(strDomain):
     parsed_uri = urlparse(strDomain)
     result = '{uri.netloc}'.format(uri=parsed_uri)   #remove slash at end
     result = getSubDomain(result)
-    result = result.replace("www.", "")
+    result = result.lower().replace("www.", "")
 
     if r.hexists(setDomainCount,result):
         val = r.hget(setDomainCount,result)
@@ -389,6 +389,15 @@ def ifRepeatPath(input):
 
 #print(ifRepeatPath('https://www.informatics.uci.edu/grad/student-profiles/grad/graduate-student-profile-christina-rall/'))
 
+def _tryConvertToInt(str):
+    try:
+        abc = int(str)
+        if(abc > 1950 and abc < 2050):
+            return abc
+        else:
+            return 0    #invalid number, screen for 0
+    except:
+        return -1
 
 '''
 Problem 3
@@ -416,24 +425,27 @@ def reportQuestion3():
     diction = dict(json.loads(dictionaryPython[TOKEN_COUNT_KEY]))[TOKEN_COUNT_KEY]
     diction = dict(json.loads(diction))
 
-    iLoop = 0
+    iLoop = 1
     file = open('tokensMostCount.txt', 'w+')
 
     for w in sorted(diction, key=diction.get, reverse=True):
         if (w in report.stopWords):
             continue
 
-        iLoopPrint = iLoop + 1
-
         if len(w) > 1:
             # print(w, diction[w])
-            file.write(str(iLoopPrint) + ". " + str(w) + " " + str(diction[w]) + "\n")
+            # screen for invalid numbers that aren't years
+            result = _tryConvertToInt(str(w))
+            if(result == 0):
+                continue
+
+            file.write(str(iLoop) + ". " + str(w) + " " + str(diction[w]) + "\n")
         else:
             continue
 
         iLoop = iLoop + 1
 
-        if iLoop == 50:
+        if iLoop > 50:
             break
 
     file.close()

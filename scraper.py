@@ -73,15 +73,14 @@ def extract_next_links(url, resp, config, logger):
 
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
 
+    # removes comments from text
     for tag in soup(text=lambda text: isinstance(text,Comment)):
         tag.extract()
 
-        #r.sadd(blackList, url)
-        #return
-        #DataStore.urlSeenBefore.add(strCompleteURL)
-    #if not r.sismember(urlSet,strCompleteURL):
+    # removes javascript and css from text
+    for element in soup.findAll(['script', 'style']):
+        element.extract()
 
-        #DataStore.uniqueUrlCount += 1
 
     # increment counter for Domain based on subdomain
     tutils.incrementSubDomain(url)

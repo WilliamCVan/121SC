@@ -10,9 +10,10 @@ import json
 import utils.reportUtil as report
 from utils.cacheRobotParser import CacheRobotFileParser
 
+## connect redis to server on a specific port
 r = redis.Redis(host="localhost",port=6379,db=0, decode_responses=True)
 
-#robotsCheck ="robotsDict"
+# dataset names
 mostTokensUrl="mostTokens"
 setDomainCount = "setDomainCount"
 TOKEN_COUNT_NAME = "tokenCount"
@@ -35,22 +36,29 @@ May remove adding domain to robotchecks part.
 Thought process: robots.txt is found in the root page which is usually a domain or subdomain. In order to check if a url is allowed or not, 
 just find its domain/subdomain and look at the disallowed section.
 '''
+
 def robotsTxtParse(url, config, logger):
     # Finds the robot.txt of a domain and subdomain(if one exists) and
     # Stores it in DataStore.RobotChecks
+    # call urlparse to filter the url and seperate the parts
     scheme = urlparse(url).scheme #scheme needed to read robots.txt
 
+    # pass url to get domain
     domain = getDomain(url)
     #val=r.hget(robotsCheck,"bhh").decode('utf-8')
     if domain != '' and domain not in DataStore.robotsCheck and domain != 'uci.edu':
     #if domain != '' and domain not in r.hexists(robotsCheck, domain):
+        # get the url of robot.txt
         robotTxtUrl = f"{scheme}://{domain}/robots.txt"
+        # retrieve from cache. stix server
         robot = CacheRobotFileParser(config, logger)
         robot.set_url(robotTxtUrl)
+        # retrieve user agents and allow/dissalow permissions
         robot.read()
         #r.hset(robotsCheck, domain, robot)
+        # store robots.txt according to domain of url
         DataStore.robotsCheck[domain] = robot
-
+    # get subdomain and same as above
     subdomain = getSubDomain(url)
     if subdomain != '' and subdomain not in DataStore.robotsCheck:
     #if subdomain != '' and not r.hexists(robotsCheck,subdomain):
@@ -68,6 +76,7 @@ def robotsTxtParseSeeds(config, logger):
     'https://www.cs.uci.edu',
     'https://www.informatics.uci.edu',
     'https://www.stat.uci.edu']
+    # retrieve robots.txt from seed urls
     for seedUrl in seedUrls:
         scheme = urlparse(seedUrl).scheme
         domain = getSubDomain(seedUrl)
@@ -79,6 +88,7 @@ def robotsTxtParseSeeds(config, logger):
         #r.hset(robotsCheck, domain, robot)
 
 def robotsAllowsSite(subdomain, url):
+    # check if url is allowed or dissalowed according to robot.txt
     if subdomain in DataStore.robotsCheck.keys():
     #if r.hexists(robotsCheck,subdomain):
         #robot = r.hget(robotsCheck,subdomain)#.decode('utf-8')
@@ -89,6 +99,7 @@ def robotsAllowsSite(subdomain, url):
 
 
 ### CHANGED TO ADD SUFFIX TO DOMAIN
+# get domain of url
 def getDomain(url):
     # Gets the domain or subdomain of a url and returns it.
     ext = tldextract.extract(url)
@@ -98,6 +109,7 @@ def getDomain(url):
     return domainUrl
 
 ### CHANGED TO ADD SUFFIX TO DOMAIN
+# get subdomain
 def getSubDomain(url):
     ext = tldextract.extract(str(url))
     domainUrl = ''
@@ -108,7 +120,7 @@ def getSubDomain(url):
 
     return domainUrl
 
-
+# append relative path and parent domain to full url
 def returnFullURL(parent_url, strInput):
     parsed_uri = urlparse(parent_url)
     result = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)   #remove slash
@@ -122,13 +134,15 @@ def returnFullURL(parent_url, strInput):
     else:
         return urljoin(result, strInput)
 
-
+# count subdomains
 def incrementSubDomain(strDomain):
     parsed_uri = urlparse(strDomain)
+    # get the whole url without the path
     result = '{uri.netloc}'.format(uri=parsed_uri)   #remove slash at end
     result = getSubDomain(result)
     result = result.lower().replace("www.", "")
 
+    #count subdomains
     if r.hexists(setDomainCount,result):
         val = r.hget(setDomainCount,result)
         val = int(val)
@@ -140,11 +154,13 @@ def incrementSubDomain(strDomain):
     #r.hset(setDomainCount)
     #DataStore.subDomainCount[result] = DataStore.subDomainCount.get(result, 0) + 1
 
-
+# tokenizer
 def tokenize(url, rawText):
+    # take letters/numbers and also keep ' in words like can't
     listTemp = re.split(r"[^a-z0-9']+", rawText.lower())
 
     #if r.hget(mostTokensUrl, ):
+    # count url with most tokens
     if (DataStore.mostTokensUrl[1] < len(listTemp)):
         DataStore.mostTokensUrl[0] = url
         DataStore.mostTokensUrl[1] = len(listTemp)
@@ -156,36 +172,35 @@ def tokenize(url, rawText):
     ##### STORE word counts in dictionary inside of redis #####
     dictCounter = dict()
     dictTEMP = dict()
-
+    # save token counts inside redis hset using token count key
+    # check if dict exists. if not create one
     if not r.hexists(TOKEN_COUNT_NAME, TOKEN_COUNT_KEY):
         r.hset(TOKEN_COUNT_NAME, TOKEN_COUNT_KEY, json.dumps(dictCounter).encode('utf-8'))
         dictCounter = r.hgetall(TOKEN_COUNT_NAME)
     else:
         dictCounter = r.hgetall(TOKEN_COUNT_NAME)
-
+    # get json string from redis and convert to python dict
     dictTEMP = dict(json.loads(dictCounter[TOKEN_COUNT_KEY]))
-
+    # check if dict is valid
     boolOnly = False
     if len(dictTEMP) > 0:
         boolOnly = True
         dictTEMP = dict(json.loads(dictTEMP[TOKEN_COUNT_KEY]))
-
+    # increment count
     for word in listTemp:
         if not word in dictTEMP:
             dictTEMP[word] = 1
         else:
             dictTEMP[word] += 1
-
+    # convert back to json string
     dictCounter[TOKEN_COUNT_KEY] = json.dumps(dictTEMP)
 
     # save back into redis
     r.hset(TOKEN_COUNT_NAME, TOKEN_COUNT_KEY, json.dumps(dictCounter))
 
-
+    # if bad url add to blacklist
     if (len(listTemp) == 0):
         r.sadd(blackList,url)
-        #DataStore.blackList.add(url)
-
 
 #### ADDED IF STATEMENTS TO CHECK FOR CALENDAR
 #if url has been blacklisted before
@@ -201,27 +216,11 @@ def isSameHash(str):
         return True
     return False
 
-# #supposed to split if two urls combined
-# # https://canvas.eee.uci.edu/courses/23516/files/folder/lectures?preview-8330088 returns empty when run on
-# def extractURL(str):
-#     try:
-#         url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', str)
-#         if ',' in url[0]:
-#             url= url[0].split(',')
-#         return url
-#     except:
-#         return ""
-
 def removeFragment(str):
     str = str.split('#')[0]
     return str
 
-
-# def hashUrl(url)->None:
-#     # 2/6/2020 Function takes in a url and finds the hash for it. Adds the hash and url into a dic
-#     normalizedUrl = normalize(url)
-#     DataStore.hashTable[get_urlhash(normalizedUrl)] = url
-
+# ignore comments from forum
 def ifConsideredSpam(str):
     try:
         str = str.split('?')[1]
@@ -273,12 +272,6 @@ def is_validDEFAULT(url):
     except TypeError:
         print ("TypeError for ", parsed)
         return False
-
-        # if subdomain in DataStore.robotsCheck.keys():
-        # #if r.hexists(robotsCheck,subdomain):
-        #     #robot = r.hget(robotsCheck,subdomain).decode('utf-8')
-        #     robot =  DataStore.robotsCheck[subdomain]
-        #     return robot.can_fetch("*", url)
 
 #is url valid
 def isValid(str):
@@ -370,25 +363,28 @@ def ifRepeatPath(input):
     strcurrent = ""
     loopiter = 0
 
+    #check everything after first element
     for itoken in arrsplit:
+        # if real url
         if(itoken.strip() == "/"):
             arrsplit = arrsplit[1:]
             continue
+        # check if empty string
         if (itoken.strip() == ""):
             arrsplit = arrsplit[1:]
             continue
 
         strcurrent = arrsplit[0]
+        # make array smaller and smaller until true of false
         arrsplit = arrsplit[1:]
 
+        # compare all tokens to very first index
         for second in arrsplit:
             if (second == strcurrent):
                 r.sadd(blackList, origUrl)
                 return True
     return False
-
-#print(ifRepeatPath('https://www.informatics.uci.edu/grad/student-profiles/grad/graduate-student-profile-christina-rall/'))
-
+# check if the years are valid
 def _tryConvertToInt(str):
     try:
         abc = int(str)
@@ -415,20 +411,16 @@ What are the 50 most common words in the entire set of pages?
  After I have printed 50 entries, exit the method.
 '''
 def reportQuestion3():
-    # count = 0
-    # for word, weight in sorted([(k, v) for k, v in DataStore.tokensCount.items()], key=lambda x: -x[1]):
-    #     print(f"{word}->{weight}")
-    #     count+= 1
-    #     if count >= 50:
-    #         return
+    # read out token count dictionary from redis and convert to python dictionary
     dictionaryPython = r.hgetall(TOKEN_COUNT_NAME)
     diction = dict(json.loads(dictionaryPython[TOKEN_COUNT_KEY]))[TOKEN_COUNT_KEY]
     diction = dict(json.loads(diction))
 
     iLoop = 1
     file = open('tokensMostCount.txt', 'w+')
-
+    # sort dict
     for w in sorted(diction, key=diction.get, reverse=True):
+        # if a stopword ignore
         if (w in report.stopWords):
             continue
 
@@ -438,7 +430,7 @@ def reportQuestion3():
             result = _tryConvertToInt(str(w))
             if(result == 0):
                 continue
-
+            # write token and count
             file.write(str(iLoop) + ". " + str(w) + " " + str(diction[w]) + "\n")
         else:
             continue
@@ -470,10 +462,12 @@ Iterate through the filtered pages, and lookup the subdomain they of ics.uci.edu
 Increment count by 1.
 '''
 def reportQuestion4():
+    # get domain count from redis and convert to dict
     redisDict = r.hgetall(setDomainCount)
     iLoop = 1
 
     file = open('subdomainCount.txt', 'w+')
+    # loop and write subdomains to file
     for i in sorted(redisDict):
         file.write(str(iLoop) + ". " + str(i) + " " + str(redisDict[i]) + "\n")
         #print((i, redisDict[i]))
